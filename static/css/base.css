@@ -1,0 +1,110 @@
+@import "tailwindcss";
+@custom-variant dark (&:where([data-theme=dark], [data-theme=dark] *));
+
+/* ------------------------------------------ Initializing variables for dark and light themes  ------------------------------------------ */
+
+:root {
+    --deep-teal: #02343F;
+    --ivory-cream: #F0EDCC;
+}
+
+ /* 🌞 Light theme */
+[data-theme="light"] {
+	--primary-color: var(--ivory-cream);
+    --secondary-color: var(--deep-teal);
+    --banner-opacity: 60%;
+    
+    .menu {
+        background: hsla(191, 41%, 33%, 1);
+        
+        background: radial-gradient(circle, hsla(191, 41%, 33%, 1) 0%, hsla(191, 94%, 13%, 1) 100%);
+        
+        background: -moz-radial-gradient(circle, hsla(191, 41%, 33%, 1) 0%, hsla(191, 94%, 13%, 1) 100%);
+        
+        background: -webkit-radial-gradient(circle, hsla(191, 41%, 33%, 1) 0%, hsla(191, 94%, 13%, 1) 100%);
+        
+        filter: progid: DXImageTransform.Microsoft.gradient( startColorstr="#326B78", endColorstr="#02343F", GradientType=1 );
+    }
+}
+
+/* 🌚 Dark theme */
+[data-theme="dark"] {
+    --primary-color: var(--deep-teal);
+    --secondary-color:var(--ivory-cream);
+    --banner-opacity: 40%;
+    
+    .menu {
+        background: hsla(55, 55%, 87%, 1);
+
+        background: radial-gradient(circle, hsla(55, 55%, 87%, 1) 0%, hsla(46, 27%, 69%, 1) 100%);
+
+        background: -moz-radial-gradient(circle, hsla(55, 55%, 87%, 1) 0%, hsla(46, 27%, 69%, 1) 100%);
+
+        background: -webkit-radial-gradient(circle, hsla(55, 55%, 87%, 1) 0%, hsla(46, 27%, 69%, 1) 100%);
+
+        filter: progid: DXImageTransform.Microsoft.gradient( startColorstr="#F0EDCC", endColorstr="#C5BB9A", GradientType=1 );
+    }
+}
+
+body {
+    background-color: var(--primary-color);
+    color: var(--secondary-color);
+}
+
+
+/* ------------------------------------------ Management of dropdown menus, laptop and mobile display ------------------------------------------ */
+@media screen and (hover: hover){
+    .mobile-menu{
+        display:none !important;
+    }
+
+    .hamburger-line {
+        transition: all 0.3s ease;
+        transform-origin: center;
+    }
+
+    .laptop-menu-container:hover .hamburger-line:nth-child(1),
+    .laptop-menu-container:hover .hamburger-line:nth-child(3) {
+        background-color: var(--secondary-color);
+    }
+
+    .laptop-menu-container:hover .hamburger-line:nth-child(1) {
+        transform: translateY(12px) rotate(45deg);
+    }
+
+    .laptop-menu-container:hover .hamburger-line:nth-child(2) {
+        opacity: 0;
+    }
+
+    .laptop-menu-container:hover .hamburger-line:nth-child(3) {
+        transform: translateY(-12px) rotate(-45deg);
+    }
+
+    .menu {
+        transform: translateX(-100%);
+        transition: transform 0.3s ease;
+    }
+
+    .laptop-menu-container:hover .menu {
+        transform: translateX(0);
+    }
+
+
+    .menu-button a {
+        display: none;
+    }
+
+    .menu-button:hover a {
+        display: inline-block;
+    }
+
+    .menu-button:hover div {
+        display: none;
+    }
+}
+
+@media screen and (hover: none){
+    .laptop-menu-container{
+        display: none !important;
+    }
+}

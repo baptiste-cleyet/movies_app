@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <!-- Required meta tags -->
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+        <link rel="icon" href="{{ url_for('static', filename='images/icon.png') }}" type="image/png" />
+         
+        {% block stylesheets %} {% endblock %}
+        <link href="{{ url_for('static', filename='css/tailwind.css') }}" rel="stylesheet">
+
+        {% block scripts %} {% endblock %}
+        <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+        <script src="{{ url_for('static', filename='js/base.js')}}" defer></script>
+
+        <title>{% block title %} {% endblock %}</title>
+    </head>
+    <nav class='mobile-menu fixed top-3 right-2 m-4 inline-flex items-center justify-center rounded-full text-(--primary-color) bg-(--secondary-color)/40 backdrop-blur-sm p-1 z-30' id='mobile-menu'>
+
+        <a id='menu-icon' 
+        class="flex items-center gap-2 p-0.5 px-1 font-semibold"
+        onclick="toggleHidden(document.getElementById('mobile-ul'))">
+            <i data-lucide="square-menu" class="w-8 h-10"></i>
+        </a>
+        
+        <ul class="menu hidden rounded-2xl" id='mobile-ul'>
+        
+            {% for item in menuItems %}
+                <li class="menu-button" id='{{ item.id }}-mobile-li'>
+                    <a
+                        id="{{ item.id }}-mobile"
+                        {% if item.href %}
+                            href="{{ item.href }}"
+                        {% endif %}
+                        class="flex items-center px-6 py-4 text-(--primary-color) font-medium cursor-pointer"
+                    >
+                        <i data-lucide="{{ item.iconName }}" class="mr-2 w-5 h-5"></i>
+                        {{ item.name }}
+                    </a>
+                </li>
+            {% endfor %}
+        
+        </ul>
+    
+    </nav>
+
+    <body>
+
+        <!-- Laptop menu -->
+        <div 
+            id = "laptop-menu"
+            data-menuItems='{{ menuItems | tojson }}' 
+            class="laptop-menu-container fixed top-4 left-4 z-40"
+        >
+            <button class="flex flex-col space-y-2 p-4 focus:outline-none group bg-(--primary-color) rounded-lg">
+                <span class="hamburger-line w-8 h-1 bg-(--secondary-color) rounded-full"></span>
+                <span class="hamburger-line w-8 h-1 bg-(--secondary-color) rounded-full"></span>
+                <span class="hamburger-line w-8 h-1 bg-(--secondary-color) rounded-full"></span>
+            </button>
+
+
+            
+            <div class="menu absolute top-0 left-0 mt-16 w-48 shadow-xl rounded-lg overflow-hidden">
+                <nav>
+                    <ul>
+                        {% for item in menuItems %}
+                            {% if not item.mobileOnly %}
+                            <li class="menu-button" id='{{ item.id }}-li'>
+                                <div class="flex items-center px-6 py-4 text-(--primary-color) font-medium cursor-pointer">
+                                    <i data-lucide="{{ item.iconName }}" class="mr-2 w-5 h-5"></i>
+                                    {{ item.name }}
+                                </div>
+                                <a
+                                    id="{{ item.id }}"
+                                    {% if item.href %}
+                                        href="{{ item.href }}"
+                                    {% endif %}
+                                    class="flex items-center justify-center w-full px-6 py-4 text-(--primary-color) font-medium cursor-pointer"
+                                    >
+                                    <i data-lucide="{{ item.iconName }}" class="mr-2 w-8 h-8"></i>
+                                </a>
+                            </li>
+                        {% endif %}
+                        {% endfor %}
+                    </ul> 
+                </nav> 
+            </div>
+        </div>
+
+        {% block content %} {% endblock %}
+
+        {% block modals %} {% endblock %}
+    </body>
+</html>

@@ -1,0 +1,140 @@
+<!-- Sort modal -->
+<div
+    id="sort-modal"
+    class="fixed inset-0 bg-black/75 flex items-center justify-center z-50 hidden"
+>
+    <div
+        id='sort-radios'
+        class="bg-(--primary-color) text-(--secondary-color) rounded-lg p-6 w-full max-w-fit"
+    >
+        <h2 class="text-xl font-bold mb-4 text-center">Choisir le tri</h2>
+        
+        <div class="flex items-center m-4">
+
+            {% for item in sortItems %}
+            <input type="radio" name="criterion" id="{{ item.id }}" value="{{ item.id }}" {% if item.id == 'date-sort' %}checked{% endif %}>
+            <label for="{{ item.id }}" class="block m-2 cursor-pointer justify-items-center"><i data-lucide='{{ item.iconName }}' class='items-center text-center'></i>{{ item.name }}</label>
+            {% endfor %}
+        </div>
+        <div class="flex items-center m-4">
+            <input type="radio" name="order" id="increasing" value="increasing">
+            <label for="increasing" class="block m-2 cursor-pointer justify-items-center"><i data-lucide='arrow-up-narrow-wide'></i>Croissant</label>
+            <input type="radio" name="order" id="decreasing" value="decreasing" checked>
+            <label for="decreasing" class="block m-2 cursor-pointer justify-items-center"><i data-lucide='arrow-down-wide-narrow'></i>Décroissant</label>
+        </div>
+    </div>
+</div>
+
+<!-- Search modal -->
+<div id="search-modal" class="fixed inset-0 hidden justify-items-center">
+    <div class="fixed bottom-0 flex items-center justify-center z-50">
+        <div class="bg-white/20 backdrop-blur-md border border-white/30 p-4 rounded-2xl shadow-xl justify-items-center" >
+            <input
+                type="text"
+                id="search-input"
+                class="w-full p-2 mb-1 bg-(--primary-color) text-(--secondary-color) placeholder-(--secondary-color) rounded text-center"
+                placeholder="Titre de film..."
+            />
+            <div>
+                <button id='reset-search' class="p-2 mt-1 bg-(--primary-color) text-(--secondary-color) rounded text-sm">Réinitialiser la recherche</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add movie modal -->
+<div
+    id="add-modal"
+    class="fixed inset-0 bg-black/75 flex items-center justify-center z-50 hidden"
+>
+    <div class="bg-(--primary-color) rounded-lg p-6 w-fit">
+        <form
+            id="add-form"
+            method="post"
+            class="grid grid-cols-1 md:grid-cols-3 gap-6"
+            action='/add_movie'
+        >
+            <div>
+                <label for="title">Titre du film</label>
+                <input
+                    id="title"
+                    name="title"
+                    type="text"
+                    placeholder="Quitter le champ pour lancer la recherche"
+                    required
+                    class="w-full p-2 border border-(--secondary-color) bg-(--primary-color) text-(--secondary-color) placeholder-(--secondary-color) rounded mb-4"
+                    onblur='addSearchPosters(this.value, document.getElementById("corresponding-poster"))'
+                />
+                <br />
+
+                <div
+                    id="corresponding-poster"
+                    class="flex items-center mb-4"
+                >
+                    <!-- Exemple d'insertion d'affiches par js :
+                    <input type="radio" name="movie_add" id="0" value="id0" checked>
+                    <img src="https://image.tmdb.org/t/p/w500/gyQi3cpOunqKrz8Jfr9OHeOxxsu.jpg" alt="inaccessible" style="width:100px; height:140px; margin-right: 8px;">
+                    <input type="radio" name="movie_add" id="1" value="id1">
+                    <img src="https://image.tmdb.org/t/p/w500/fQ0vGVTtxjCdAJnxwPZ88O3Wzrh.jpg" alt="inaccessible" style="width:100px; height:140px; margin-right: 8px;">
+                    <input type="radio" name="movie_add" id="2" value="id2">
+                    <img src="https://image.tmdb.org/t/p/w500/dMxqv6b08mQCikVPZL4UBl2MuHR.jpg" alt="inaccessible" style="width:100px; height:140px; margin-right: 8px;"> -->
+                </div>
+
+                <label for="date">Date de visionnage</label>
+                <input
+                    id="date"
+                    name="date"
+                    type="date"
+                    class="w-full p-2 border border-(--secondary-color) bg-(--primary-color) text-(--secondary-color) placeholder-(--secondary-color) rounded mb-4"
+                />
+                <br />
+
+                <label for="rating">Note personnelle</label>
+                <input
+                    id="rating"
+                    name="rating"
+                    type="number"
+                    min="0"
+                    max="100"
+                    step="1"
+                    placeholder="Note sur 100"
+                    class="w-full p-2 border border-(--secondary-color) bg-(--primary-color) text-(--secondary-color) placeholder-(--secondary-color) rounded mb-4"
+                />
+                <br />
+            </div>
+
+            <div class="col-span-2">
+                <label for="summary">Résumé</label>
+                <textarea
+                    id="summary"
+                    name="summary"
+                    rows="6"
+                    placeholder="Résumé personnel"
+                    class="w-full p-2 border border-(--secondary-color) bg-(--primary-color) text-(--secondary-color) placeholder-(--secondary-color) rounded mb-4"
+                ></textarea>
+                <br />
+
+                <label for="review">Avis</label>
+                <textarea
+                    id="review"
+                    name="review"
+                    rows="6"
+                    placeholder="Avis sur le film"
+                    class="w-full p-2 border border-(--secondary-color) bg-(--primary-color) text-(--secondary-color) placeholder-(--secondary-color) rounded mb-4"
+                ></textarea>
+                <br />
+            </div>
+
+            <div
+                class="col-span-3 items-center justify-center text-center"
+            >
+                <button
+                    type="submit"
+                    class="p-2 border border-(--secondary-color) bg-(--primary-color) text-(--secondary-color) rounded mb-4"
+                >
+                    Envoyer
+                </button>
+            </div>
+        </form>
+    </div>
+</div>

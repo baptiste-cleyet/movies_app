@@ -1,0 +1,104 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    {{movie.title}}
+{% endblock %}
+
+{% block stylesheets %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/movie_detail.css') }}" />
+{% endblock %}
+
+{% block scripts %}
+    <script src="{{ url_for('static', filename='js/movie_detail.js') }}" defer></script>
+{% endblock %}
+
+{% block content %}
+
+    <!-- Movie-banner -->
+    <div class="movie-banner" id="banner" style="background-image: url('{{ movie.banner }}')" data-movie ='{{ movie | tojson }}'>
+        <div class="container mx-auto px-4 h-full flex items-end pb-10 relative z-10 pt-32 sm:pt-6">
+            <div class="bg-(--primary-color)/(--banner-opacity) p-6 rounded-lg backdrop-blur-sm w-full md:w-2/3">
+                <h1 id="titre" class="text-4xl md:text-5xl font-bold mb-4 text-(--secondary-color)">
+                    {{movie.title}}
+                </h1>
+                <a
+                    id="tmdb-link"
+                    target="_blank"
+                    href='https://www.themoviedb.org/movie/{{ movie.tmdb_id }}'
+                    class="absolute right-0 top-0 m-6 border-2 border-white/50 hover:bg-(--primary-color) hover:border-white hover:cursor-pointer px-6 py-2 rounded-full font-semibold flex items-center gap-2 text-(--secondary-color)"
+                >
+                    Page TMDB <i data-lucide="square-arrow-out-up-right"></i>
+                </a>
+                <div class="flex gap-3 relative">
+                    <span id="note" class="score text-2xl">{{movie.rating}}</span>
+                    <div id="genres" class="flex gap-3 relative pl-2 text-(--secondary-color) text-semibold">
+                        {% for genre in genres %}
+                            <span class="border-2 border-(--secondary-color) px-2 py-1 rounded">{{ genre }}</span>
+                        {% endfor %}
+                    </div>
+                </div>
+                <div class="mt-6 grid sm:grid-flow-col sm:auto-cols-auto sm:grid-cols-auto max-sm:grid-cols-3 gap-4">
+                    {% 
+                        set french_keys = {
+                            'date': 'Date de visionnage',
+                            'year': 'Année de sortie',
+                            'runtime': 'Durée',
+                            'director': 'Réalisateur',
+                            'average_rating': 'Note moyenne'
+                        }
+                    %}
+
+                    {% for key, value in movie.items() %}
+                        {% if key in french_keys %}
+                            <div>
+                                <h4 class="font-bold text-gray-600 dark:text-gray-400">
+                                    {{ french_keys[key] }}
+                                </h4>
+                                <p id="{{ key }}" class="text-(--secondary-color) font-semibold {{ 'score' if key == 'average_rating' }}">
+                                    {{ value }}
+                                </p>
+                            </div>
+                        {% endif %}
+                    {% endfor %} 
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container mx-auto px-4 py-10 text-(--primary-color)">
+        <!-- Accordions -->
+
+        {% 
+            set movie_info = [
+                {"title" : "Résumé personnel", "text" : movie.summary if movie.summary else "Aucun résumé disponible.", "icon-name": "book-open", "id": "summary"},
+                {"title" : "Avis", "text" : movie.review if movie.review else "Aucun avis disponible.", "icon-name": "message-square", "id": "review"}
+            ]
+        %}
+        {% for info in movie_info %}
+            <div class="mb-8">
+                <div
+                    class="accordion cursor-pointer bg-(--primary-color) border-2 border-(--secondary-color) text-(--secondary-color) p-5 rounded-lg"
+                    onclick="toggleActive(this)"
+                >
+                    <div class="flex justify-between items-center">
+                        <h2 class="text-2xl font-bold flex items-center gap-3">
+                            <i data-lucide="{{ info['icon-name'] }}"></i>
+                            {{ info['title'] }}
+                        </h2>
+                        <i data-lucide="circle-chevron-down"></i>
+                    </div>
+                    <div class="accordion-content mt-4">
+                        <p
+                            id="{{ info['id'] }}"
+                            class="leading-relaxed sm:text-xl text-base"
+                        >
+                            {{ info['text'] }}
+                        </p>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+{% endblock %}
+
+{% block modals %} {% include "movie_detail_modals.html" %} {% endblock %}

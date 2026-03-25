@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+
+	{% block title %}
+		Films
+	{% endblock %}
+
+	{% block scripts %}
+		<script src="{{ url_for('static', filename='js/movie_grid.js') }}" defer></script>
+	{% endblock %} 
+
+	{% block stylesheets %}
+		<link rel="stylesheet" href="{{ url_for('static', filename='css/movie_grid.css') }}" />
+	{% endblock %}
+
+	{% block content %}
+		<!-- Grid of movies -->
+		<div class="sm:pl-16">
+			<div
+				id="movie-grid"
+				class="grid grid-cols-2 sm:grid-cols-[repeat(auto-fill,minmax(200px,1fr))] gap-6 px-6 py-4"
+				data-movies='{{ movies | tojson }}'
+			>
+			</div>
+		</div>
+	{% endblock %}
+
+	{% block modals %} {% include "movie_grid_modals.html" %} {% endblock %}
+	</body>
+</html>

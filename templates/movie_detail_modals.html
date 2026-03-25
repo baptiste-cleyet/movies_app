@@ -1,0 +1,96 @@
+<!-- Update movie modal -->
+<div
+    id="update-modal"
+    class="fixed inset-0 bg-black/75 flex items-center justify-center z-50 hidden"
+>
+    <div class="bg-(--primary-color) rounded-lg p-6 w-fit">
+        <form
+            id="update-form"
+            method="post"
+            class="grid grid-cols-1 md:grid-cols-2 gap-6"
+            action='/update_movie/{{ movie.tmdb_id }}'
+        >
+            <div>
+
+                <label for="date">Date de visionnage</label>
+                <input
+                    id="date"
+                    name="date"
+                    type="date"
+                    value='{{ movie.date }}'
+                    class="w-full p-2 border border-(--secondary-color) bg-(--primary-color) text-(--secondary-color) placeholder-(--secondary-color) rounded mb-4"
+                />
+                <br />
+
+                <label for="summary">Résumé</label>
+                <textarea
+                id="summary"
+                name="summary"
+                rows="6"
+                class="w-full p-2 border border-(--secondary-color) bg-(--primary-color) text-(--secondary-color) placeholder-(--secondary-color) rounded mb-4"
+                >{{ movie.summary }}</textarea>
+                <br />
+            </div>
+            
+            <div>
+                <label for="rating">Note personnelle</label>
+                <input
+                    id="rating"
+                    name="rating"
+                    type="number"
+                    min="0"
+                    max="100"
+                    step="1"
+                    value='{{ movie.rating }}'
+                    class="w-full p-2 border border-(--secondary-color) bg-(--primary-color) text-(--secondary-color) placeholder-(--secondary-color) rounded mb-4"
+                />
+                <br />
+
+                <label for="review">Avis</label>
+                <textarea
+                    id="review"
+                    name="review"
+                    rows="6"
+                    class="w-full p-2 border border-(--secondary-color) bg-(--primary-color) text-(--secondary-color) placeholder-(--secondary-color) rounded mb-4"
+                >{{ movie.review }}</textarea>
+                <br />
+            </div>
+
+            <div
+                class="col-span-3 items-center justify-center text-center"
+            >
+                <button
+                    type="submit"
+                    class="p-2 border border-(--secondary-color) bg-(--primary-color) text-(--secondary-color) rounded mb-4"
+                >
+                    Envoyer
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Delete movie modal -->
+<div
+    id="delete-modal"
+    class="fixed inset-0 bg-black/75 flex items-center justify-center z-50 hidden"
+>
+    <div class="bg-(--primary-color) rounded-lg p-6 w-fit">
+        <form
+        id="delete-form"
+        method="post"
+        class="text-center items-center justify-center"
+        action='/delete_movie/{{ movie.tmdb_id }}'
+        >
+            <p class="text-(--secondary-color) mb-4">Êtes-vous sûr de vouloir supprimer ce film ?</p>
+            <div class='flex items-center justify-center text-center gap-4'>
+                <button
+                    type="submit"
+                    class="p-2 border border-(--secondary-color) bg-(--primary-color) text-(--secondary-color) rounded mb-4 hover:cursor-pointer"
+                >
+                    Valider
+                </button>
+            </div>
+        </form>
+    </div>
+</div>

@@ -1,0 +1,50 @@
+.movie-banner {
+    background-size: cover;
+    background-position: center;
+    position: relative;
+    background-attachment: fixed;
+}
+
+.movie-banner::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(to bottom, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.8) 100%);
+}
+
+.accordion-content {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease-out;
+}
+
+.accordion.active .accordion-content {
+    max-height: 500px;
+    transition: max-height 0.5s ease-in;
+}
+
+.accordion.active .accordion-icon {
+    transform: rotate(180deg);
+}
+
+.accordion-icon {
+    transition: transform 0.3s ease;
+}
+@media screen and (hover:none) {
+    .movie-banner{
+        height: auto;
+    }
+    
+    #tmdb-link{
+        display: none;
+    }
+}
+
+@media screen and (hover:hover) {
+    .movie-banner{
+        height: 60vh;
+    }
+}

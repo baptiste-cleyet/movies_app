@@ -1,0 +1,25 @@
+.movie-card {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    position: relative;
+    border-radius: 0.5rem;
+    overflow: hidden;
+    background-color: rgb(31 41 55 / var(--tw-bg-opacity, 1));
+}
+
+.movie-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+}
+
+.poster-info {
+    position: absolute;
+    top: 10px;
+    background: rgba(0, 0, 0, 0.7);
+    padding: 5px 8px;
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    color: var(--ivory-cream);
+    font-size: 12px;
+}
+  
