@@ -1,8 +1,11 @@
 # Movies app
 
-A flask application where you can save all the movies you've seen, with own summary and review. All public information come from the TMDB api.
+> A flask application where you can save all the movies you've seen, with own summary and review. All public information come from the TMDB api.
 
 ---
+
+> Project by Baptiste Cleyet.
+> For question or information contact [bcleyet@gmail.com](mailto:bcleyet@gmail.com).
 
 # Setup
 
@@ -38,8 +41,8 @@ Install requests : `pip install requests`
 
 ### TailwindCSS
 
-⚠️ You can skip this step if you don't need to modify the styles of the application.
-\
+> ⚠️ You can skip this step if you don't need to modify the styles of the application.
+
 Install Tailwind : `npm install tailwindcss @tailwindcss/cli`
 [More information](https://tailwindcss.com/docs/installation/tailwind-cli)
 
@@ -48,6 +51,14 @@ Run `npx @tailwindcss/cli -i ./static/css/base.css -o ./static/css/tailwind.css 
 ---
 
 # File Tree
+
+## Use
+
+- **modules:** python modules files that request the tmdb api
+- **static:** images, js and css files, linked to templates with same names
+- **templates:** html files, base is used in every page, _file_name_\_modals are used for the modals of the page with the same name
+
+## Representation
 
 **Generated:** 3/25/2026, 5:47:38 PM
 
