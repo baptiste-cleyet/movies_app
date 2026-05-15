@@ -1,10 +1,10 @@
 lucide.createIcons();
 
+const root = document.documentElement;
 /**
  * This function is used to toggle the dark mode of the website.
  */
 (function () {
-    const root = document.documentElement;
     theme =
         document.cookie
             .split("; ")
