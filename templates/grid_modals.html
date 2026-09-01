@@ -1,0 +1,84 @@
+<!-- Sort modal -->
+<div
+    id="sort-modal"
+    class="fixed inset-0 bg-black/75 flex items-center justify-center z-50 hidden"
+>
+    <div
+        id="sort-radios"
+        class="bg-(--primary-color) text-(--secondary-color) rounded-lg p-6 w-full max-w-fit"
+    >
+        <h2 class="text-xl font-bold mb-4 text-center">Choisir le tri</h2>
+
+        <div class="flex items-center m-4">
+            {% for item in sortItems %}
+            <input
+                type="radio"
+                name="criterion"
+                id="{{ item.id }}"
+                value="{{ item.id }}"
+                {% if item.id=="date-sort" %}
+                    checked
+                {% endif %}
+            />
+            <label
+                for="{{ item.id }}"
+                class="block m-2 cursor-pointer justify-items-center"
+                ><i
+                    data-lucide="{{ item.iconName }}"
+                    class="items-center text-center"
+                ></i
+                >{{ item.name }}</label
+            >
+            {% endfor %}
+        </div>
+        <div class="flex items-center m-4">
+            <input
+                type="radio"
+                name="order"
+                id="increasing"
+                value="increasing"
+            />
+            <label
+                for="increasing"
+                class="block m-2 cursor-pointer justify-items-center"
+                ><i data-lucide="arrow-up-narrow-wide"></i>Croissant</label
+            >
+            <input
+                type="radio"
+                name="order"
+                id="decreasing"
+                value="decreasing"
+                checked
+            />
+            <label
+                for="decreasing"
+                class="block m-2 cursor-pointer justify-items-center"
+                ><i data-lucide="arrow-down-wide-narrow"></i>Décroissant</label
+            >
+        </div>
+    </div>
+</div>
+
+<!-- Search modal -->
+<div id="search-modal" class="fixed inset-0 hidden justify-items-center">
+    <div class="fixed bottom-0 flex items-center justify-center z-50">
+        <div
+            class="bg-white/20 backdrop-blur-md border border-white/30 p-4 rounded-2xl shadow-xl justify-items-center"
+        >
+            <input
+                type="text"
+                id="search-input"
+                class="w-full p-2 mb-1 bg-(--primary-color) text-(--secondary-color) placeholder-(--secondary-color) rounded text-center"
+                placeholder="Titre de film..."
+            />
+            <div>
+                <button
+                    id="reset-search"
+                    class="p-2 mt-1 bg-(--primary-color) text-(--secondary-color) rounded text-sm"
+                >
+                    Réinitialiser la recherche
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

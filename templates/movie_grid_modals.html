@@ -1,0 +1,96 @@
+<!-- Add movie modal -->
+<div
+    id="add-modal"
+    class="fixed inset-0 bg-black/75 flex items-center justify-center z-50 hidden"
+>
+    <div class="bg-(--primary-color) rounded-lg p-6 w-fit">
+        <form
+            id="add-form"
+            method="post"
+            class="grid grid-cols-1 md:grid-cols-3 gap-6"
+            action="/add_movie"
+        >
+            <div>
+                <label for="title">Titre du film</label>
+                <input
+                    id="title"
+                    name="title"
+                    type="text"
+                    placeholder="Quitter le champ pour lancer la recherche"
+                    required
+                    class="w-full p-2 border border-(--secondary-color) bg-(--primary-color) text-(--secondary-color) placeholder-(--secondary-color) rounded mb-4"
+                    onblur="
+                        addSearchPosters(
+                            this.value,
+                            document.getElementById('corresponding-poster'),
+                        )
+                    "
+                />
+                <br />
+
+                <div id="corresponding-poster" class="flex items-center mb-4">
+                    <!-- Exemple d'insertion d'affiches par js :
+                    <input type="radio" name="movie_add" id="0" value="id0" checked>
+                    <img src="https://image.tmdb.org/t/p/w500/gyQi3cpOunqKrz8Jfr9OHeOxxsu.jpg" alt="inaccessible" style="width:100px; height:140px; margin-right: 8px;">
+                    <input type="radio" name="movie_add" id="1" value="id1">
+                    <img src="https://image.tmdb.org/t/p/w500/fQ0vGVTtxjCdAJnxwPZ88O3Wzrh.jpg" alt="inaccessible" style="width:100px; height:140px; margin-right: 8px;">
+                    <input type="radio" name="movie_add" id="2" value="id2">
+                    <img src="https://image.tmdb.org/t/p/w500/dMxqv6b08mQCikVPZL4UBl2MuHR.jpg" alt="inaccessible" style="width:100px; height:140px; margin-right: 8px;"> -->
+                </div>
+
+                <label for="date">Date de visionnage</label>
+                <input
+                    id="date"
+                    name="date"
+                    type="date"
+                    class="w-full p-2 border border-(--secondary-color) bg-(--primary-color) text-(--secondary-color) placeholder-(--secondary-color) rounded mb-4"
+                />
+                <br />
+
+                <label for="rating">Note personnelle</label>
+                <input
+                    id="rating"
+                    name="rating"
+                    type="number"
+                    min="0"
+                    max="100"
+                    step="1"
+                    placeholder="Note sur 100"
+                    class="w-full p-2 border border-(--secondary-color) bg-(--primary-color) text-(--secondary-color) placeholder-(--secondary-color) rounded mb-4"
+                />
+                <br />
+            </div>
+
+            <div class="col-span-2">
+                <label for="summary">Résumé</label>
+                <textarea
+                    id="summary"
+                    name="summary"
+                    rows="6"
+                    placeholder="Résumé personnel"
+                    class="w-full p-2 border border-(--secondary-color) bg-(--primary-color) text-(--secondary-color) placeholder-(--secondary-color) rounded mb-4"
+                ></textarea>
+                <br />
+
+                <label for="review">Avis</label>
+                <textarea
+                    id="review"
+                    name="review"
+                    rows="6"
+                    placeholder="Avis sur le film"
+                    class="w-full p-2 border border-(--secondary-color) bg-(--primary-color) text-(--secondary-color) placeholder-(--secondary-color) rounded mb-4"
+                ></textarea>
+                <br />
+            </div>
+
+            <div class="col-span-3 items-center justify-center text-center">
+                <button
+                    type="submit"
+                    class="p-2 border border-(--secondary-color) bg-(--primary-color) text-(--secondary-color) rounded mb-4"
+                >
+                    Envoyer
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
