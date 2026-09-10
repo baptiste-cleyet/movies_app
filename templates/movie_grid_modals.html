@@ -3,7 +3,7 @@
     id="add-modal"
     class="fixed inset-0 bg-black/75 flex items-center justify-center z-50 hidden"
 >
-    <div class="bg-(--primary-color) rounded-lg p-6 w-fit">
+    <div class="bg-(--primary-color) rounded-lg p-6 w-auto max-w-2xl mx-4 max-h-[85vh] overflow-y-auto">
         <form
             id="add-form"
             method="post"
@@ -11,26 +11,23 @@
             action="/add_movie"
         >
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <input type="hidden" name="movie_add" id="movie_add" value="">
             <div>
-                <label for="title">Titre du film</label>
+                <label for="title" class="font-semibold">Titre du film</label>
                 <input
                     id="title"
                     name="title"
                     type="text"
-                    placeholder="Quitter le champ pour lancer la recherche"
+                    placeholder="Tapez pour rechercher..."
                     required
-                    class="w-full p-2 border border-(--secondary-color) bg-(--primary-color) text-(--secondary-color) placeholder-(--secondary-color) rounded mb-4"
+                    autocomplete="off"
+                    aria-autocomplete="list"
+                    aria-controls="corresponding-poster"
+                    class="w-full p-2 border border-(--secondary-color) bg-(--primary-color) text-(--secondary-color) placeholder-(--secondary-color) rounded mb-2"
                 />
-                <br />
+                <p class="text-xs text-gray-500 mb-2">Résultats mis à jour à la frappe</p>
 
-                <div id="corresponding-poster" class="flex items-center mb-4">
-                    <!-- Exemple d'insertion d'affiches par js :
-                    <input type="radio" name="movie_add" id="0" value="id0" checked>
-                    <img src="https://image.tmdb.org/t/p/w500/gyQi3cpOunqKrz8Jfr9OHeOxxsu.jpg" alt="inaccessible" style="width:100px; height:140px; margin-right: 8px;">
-                    <input type="radio" name="movie_add" id="1" value="id1">
-                    <img src="https://image.tmdb.org/t/p/w500/fQ0vGVTtxjCdAJnxwPZ88O3Wzrh.jpg" alt="inaccessible" style="width:100px; height:140px; margin-right: 8px;">
-                    <input type="radio" name="movie_add" id="2" value="id2">
-                    <img src="https://image.tmdb.org/t/p/w500/dMxqv6b08mQCikVPZL4UBl2MuHR.jpg" alt="inaccessible" style="width:100px; height:140px; margin-right: 8px;"> -->
+                <div id="corresponding-poster" role="listbox" class="flex flex-row gap-3 mb-4 min-h-[1rem] justify-center items-start">
                 </div>
 
                 <label for="date">Date de visionnage</label>
@@ -81,7 +78,9 @@
             <div class="col-span-3 items-center justify-center text-center">
                 <button
                     type="submit"
-                    class="p-2 border border-(--secondary-color) bg-(--primary-color) text-(--secondary-color) rounded mb-4"
+                    id="grid-submit"
+                    disabled
+                    class="p-2 border border-(--secondary-color) bg-(--primary-color) text-(--secondary-color) rounded mb-4 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                     Envoyer
                 </button>

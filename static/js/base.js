@@ -46,11 +46,34 @@ document.addEventListener("DOMContentLoaded", function () {
     if (menuIcon && menu) {
         menuIcon.addEventListener("click", () => toggleHidden(menu));
     }
-    // init search poster blur handler
+    // live autocomplete handler (debounced input)
     const titleInput = document.getElementById("title");
     const posterContainer = document.getElementById("corresponding-poster");
     if (titleInput && posterContainer) {
-        titleInput.addEventListener("blur", () => addSearchPosters(titleInput.value, posterContainer));
+        let debounceTimer;
+        let abortController;
+        titleInput.addEventListener("input", () => {
+            clearTimeout(debounceTimer);
+            const value = titleInput.value.trim();
+            if (value.length < 2) {
+                posterContainer.innerHTML = "";
+                const hid = document.getElementById("movie_add");
+                if (hid) hid.value = "";
+                updateAutocompleteSubmit();
+                return;
+            }
+            if (abortController) abortController.abort();
+            abortController = new AbortController();
+            debounceTimer = setTimeout(() => {
+                addSearchPosters(value, posterContainer, abortController.signal);
+            }, 300);
+        });
+        // keyboard: Escape clears
+        titleInput.addEventListener("keydown", (e) => {
+            if (e.key === "Escape") {
+                posterContainer.innerHTML = "";
+            }
+        });
     }
 
     updateScoreColors();
@@ -152,44 +175,113 @@ export function search(movies, title) {
     return correpondingMovies;
 }
 
-export function addSearchPosters(title, posterContainer) {
+function ensureTooltip() {
+    let tip = document.getElementById("autocomplete-tooltip");
+    if (!tip) {
+        tip = document.createElement("div");
+        tip.id = "autocomplete-tooltip";
+        tip.style.position = "fixed";
+        tip.style.pointerEvents = "none";
+        tip.style.zIndex = "9999";
+        tip.style.background = "rgba(0,0,0,0.85)";
+        tip.style.color = "white";
+        tip.style.padding = "6px 8px";
+        tip.style.borderRadius = "6px";
+        tip.style.fontSize = "12px";
+        tip.style.lineHeight = "1.2";
+        tip.style.maxWidth = "160px";
+        tip.style.display = "none";
+        tip.style.boxShadow = "0 4px 12px rgba(0,0,0,0.3)";
+        document.body.appendChild(tip);
+    }
+    return tip;
+}
+
+function updateAutocompleteSubmit() {
+    const hid = document.getElementById("movie_add");
+    const val = hid ? hid.value : "";
+    document.querySelectorAll("#watchlist-submit, #grid-submit").forEach((btn) => {
+        if (btn) btn.disabled = !val;
+    });
+}
+
+export function addSearchPosters(title, posterContainer, signal) {
     if (!posterContainer) return;
-    posterContainer.innerHTML = "";
+    posterContainer.innerHTML = '<p class="col-span-3 text-center text-sm text-gray-500">Recherche...</p>';
+    const hiddenInput = document.getElementById("movie_add");
+    if (hiddenInput) hiddenInput.value = "";
+    updateAutocompleteSubmit();
     fetch("/search_movie", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ title: title }),
+        signal,
     })
         .then((response) => response.json())
         .then((data) => {
+            posterContainer.innerHTML = "";
             if (data.error) {
-                posterContainer.innerHTML = data.error;
+                posterContainer.innerHTML = `<p class="col-span-3 text-center text-sm">${data.error}</p>`;
                 return;
             }
             if (typeof data.results === "string") {
-                posterContainer.innerHTML = data.results;
+                posterContainer.innerHTML = `<p class="col-span-3 text-center text-sm">${data.results}</p>`;
                 return;
             }
             if (!data.results || data.results.length === 0) {
-                posterContainer.innerHTML = "Aucun film trouvé";
+                posterContainer.innerHTML = '<p class="col-span-3 text-center text-sm">Aucun film trouvé</p>';
                 return;
             }
-            for (let i = 0; i < data.results.length; i++) {
-                const inputChild = document.createElement("input");
-                inputChild.type = "radio";
-                inputChild.name = "movie_add";
-                inputChild.id = i;
-                inputChild.value = data.results[i].id;
-                if (i === 0) inputChild.checked = true;
-                const imgChild = document.createElement("img");
-                imgChild.src = "https://image.tmdb.org/t/p/w500" + data.results[i].poster_path;
-                imgChild.alt = "inaccessible";
-                imgChild.style = "width:100px; height:140px; margin-right: 8px;";
-                posterContainer.appendChild(inputChild);
-                posterContainer.appendChild(imgChild);
-            }
+            data.results.forEach((movie) => {
+                const year = (movie.release_date || "").split("-")[0] || "";
+                const card = document.createElement("div");
+                card.className = "search-card cursor-pointer border-2 border-transparent rounded-lg text-center hover:border-(--secondary-color) transition flex-shrink-0 relative overflow-hidden";
+                card.style.width = "110px";
+                card.setAttribute("role", "option");
+                card.dataset.id = movie.id;
+                const imgSrc = movie.poster_path ? "https://image.tmdb.org/t/p/w500" + movie.poster_path : "";
+                card.innerHTML = `${imgSrc ? `<img src="${imgSrc}" alt="${movie.title}" style="width:100%;height:110px;object-fit:cover;" class="rounded">` : `<div style="width:100%;height:110px;" class="bg-gray-300 rounded flex items-center justify-center text-xs">Pas d'affiche</div>`}`;
+                const tooltip = ensureTooltip();
+                const showTip = (e) => {
+                    tooltip.innerHTML = `<div style="font-weight:600;">${movie.title}</div><div style="opacity:0.8;">${year}</div>`;
+                    tooltip.style.display = "block";
+                    const x = e.clientX + 12;
+                    const y = e.clientY + 12;
+                    // keep inside viewport
+                    const rect = tooltip.getBoundingClientRect();
+                    const maxX = window.innerWidth - rect.width - 8;
+                    const maxY = window.innerHeight - rect.height - 8;
+                    tooltip.style.left = Math.min(x, maxX) + "px";
+                    tooltip.style.top = Math.min(y, maxY) + "px";
+                };
+                const moveTip = (e) => {
+                    if (tooltip.style.display === "none") return;
+                    const x = e.clientX + 12;
+                    const y = e.clientY + 12;
+                    const rect = tooltip.getBoundingClientRect();
+                    const maxX = window.innerWidth - rect.width - 8;
+                    const maxY = window.innerHeight - rect.height - 8;
+                    tooltip.style.left = Math.min(x, maxX) + "px";
+                    tooltip.style.top = Math.min(y, maxY) + "px";
+                };
+                const hideTip = () => { tooltip.style.display = "none"; };
+                card.addEventListener("mouseenter", showTip);
+                card.addEventListener("mousemove", moveTip);
+                card.addEventListener("mouseleave", hideTip);
+                card.addEventListener("click", () => {
+                    posterContainer.querySelectorAll(".search-card").forEach((c) => c.classList.remove("ring-2", "ring-(--secondary-color)", "border-(--secondary-color)"));
+                    card.classList.add("ring-2", "ring-(--secondary-color)", "border-(--secondary-color)");
+                    if (hiddenInput) hiddenInput.value = movie.id;
+                    updateAutocompleteSubmit();
+                });
+                posterContainer.appendChild(card);
+            });
+            createIcons({ icons });
         })
-        .catch((err) => console.error("Erreur :", err));
+        .catch((err) => {
+            if (err.name === "AbortError") return;
+            console.error("Erreur :", err);
+        });
 }
 
 // Keep globals for inline handlers (onclick="toggleHidden(...)" in base.html)
