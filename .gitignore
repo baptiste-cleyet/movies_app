@@ -1,6 +1,10 @@
-database.db
 .env
 __pycache__/
-flask.txt
-[dD]ocker*
+*.pyc
+.venv/
+data/database.db
+database.db
 node_modules/
+static/css/tailwind.css
+.pytest_cache/
+.directory

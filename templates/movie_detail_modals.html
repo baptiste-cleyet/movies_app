@@ -10,6 +10,7 @@
             class="grid grid-cols-1 md:grid-cols-2 gap-6"
             action='/update_movie/{{ movie.tmdb_id }}'
         >
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <div>
 
                 <label for="date">Date de visionnage</label>
@@ -82,6 +83,7 @@
         class="text-center items-center justify-center"
         action='/delete_movie/{{ movie.tmdb_id }}'
         >
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <p class="text-(--secondary-color) mb-4">Êtes-vous sûr de vouloir supprimer ce film ?</p>
             <div class='flex items-center justify-center text-center gap-4'>
                 <button

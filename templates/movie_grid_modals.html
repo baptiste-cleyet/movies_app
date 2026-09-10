@@ -10,6 +10,7 @@
             class="grid grid-cols-1 md:grid-cols-3 gap-6"
             action="/add_movie"
         >
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <div>
                 <label for="title">Titre du film</label>
                 <input

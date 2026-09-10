@@ -77,8 +77,10 @@ function displayGrid(moviesToDisplay = movies) {
 }
 
 async function deleteMovieWatchlist(tmdbId) {
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
     const response = await fetch(`/delete_movie_watchlist/${tmdbId}`, {
-        method: 'POST'
+        method: 'POST',
+        headers: { 'X-CSRFToken': csrfToken },
     });
     
     if (response.ok) {

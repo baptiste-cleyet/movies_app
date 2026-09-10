@@ -122,13 +122,17 @@ function addSearchPosters(title, posterContainer) {
     })
         .then((response) => response.json())
         .then((data) => {
-            addChoices = data.results;
-            if (data.results.length === 0) {
-                posterContainer.innerHTML = 'Aucun film trouvé';
+            if (data.error) {
+                posterContainer.innerHTML = data.error;
                 return;
             }
-            if (typeof data.results === String) {
+            if (typeof data.results === "string") {
                 posterContainer.innerHTML = data.results;
+                return;
+            }
+            addChoices = data.results;
+            if (!data.results || data.results.length === 0) {
+                posterContainer.innerHTML = 'Aucun film trouvé';
                 return;
             }
             for (let i = 0; i < data.results.length; i++) {

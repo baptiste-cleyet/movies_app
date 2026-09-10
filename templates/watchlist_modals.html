@@ -5,6 +5,7 @@
 >
     <div class="bg-(--primary-color) rounded-lg p-6 w-fit">
         <form id="add-form" method="post" action="/add_movie_watchlist">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <div>
                 <label for="title">Titre du film</label>
                 <input

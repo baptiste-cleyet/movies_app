@@ -1,0 +1,11 @@
+__pycache__
+*.pyc
+.git
+.gitignore
+node_modules
+npm-debug.log
+data/database.db
+.env
+.venv
+.pytest_cache/
+static/css/tailwind.css
