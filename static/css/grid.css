@@ -3,7 +3,9 @@
     position: relative;
     border-radius: 0.5rem;
     overflow: hidden;
-    background-color: rgb(31 41 55 / var(--tw-bg-opacity, 1));
+    background-color: rgb(31 41 55);
+    content-visibility: auto;
+    contain-intrinsic-size: 300px 450px;
 }
 
 .movie-card:hover {

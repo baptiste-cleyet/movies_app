@@ -1,4 +1,4 @@
-import { addOpeners, addClosers } from "./base.js";
+import { addOpeners, addClosers, toggleActive } from "./base.js";
 
 document.addEventListener("DOMContentLoaded", function () {
     const banner = document.getElementById("banner");
@@ -13,4 +13,9 @@ document.addEventListener("DOMContentLoaded", function () {
     ];
     addOpeners(modalElements);
     addClosers(modalElements);
+
+    // Delegate accordion toggle (replaces inline onclick)
+    document.querySelectorAll(".accordion").forEach((el) => {
+        el.addEventListener("click", () => toggleActive(el));
+    });
 });

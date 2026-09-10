@@ -8,10 +8,8 @@ bp = Blueprint("main", __name__)
 
 @bp.route("/")
 def index():
-    movies = Movie.query.order_by(Movie.date.desc()).all()
-    movies = [m.to_dict() for m in movies]
-    # filter to needed fields for template
-    movies = [{k: m[k] for k in ("date", "title", "rating", "year", "tmdb_id", "poster")} for m in movies]
+    rows = Movie.query.with_entities(Movie.date, Movie.title, Movie.rating, Movie.year, Movie.tmdb_id, Movie.poster).order_by(Movie.date.desc()).all()
+    movies = [dict(zip(["date", "title", "rating", "year", "tmdb_id", "poster"], r)) for r in rows]
     menuItems = [
         {"id": "watchlist-button", "name": "Watchlist", "iconName": "eye", "href": "/watchlist"},
         {"id": "search-button", "name": "Rechercher", "iconName": "search"},
@@ -23,7 +21,8 @@ def index():
 
 @bp.route("/watchlist")
 def watchlist():
-    movies = [m.to_dict() for m in Watchlist.query.all()]
+    rows = Watchlist.query.with_entities(Watchlist.tmdb_id, Watchlist.title, Watchlist.poster, Watchlist.year, Watchlist.rating).all()
+    movies = [dict(zip(["tmdb_id", "title", "poster", "year", "rating"], r)) for r in rows]
     menuItems = [
         {"id": "movie-grid-button", "name": "Grille de films", "iconName": "layout-grid", "href": "/"},
         {"id": "search-button", "name": "Rechercher", "iconName": "search"},
@@ -35,7 +34,7 @@ def watchlist():
 
 @bp.route("/<int:tmdb_id>")
 def movie_detail(tmdb_id):
-    movie = Movie.query.get(tmdb_id)
+    movie = db.session.get(Movie, tmdb_id)
     if not movie:
         abort(404)
     movie_dict = movie.to_dict()

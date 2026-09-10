@@ -1,6 +1,10 @@
 import requests
 import os
+from functools import lru_cache
+from urllib3.util.retry import Retry
+from requests.adapters import HTTPAdapter
 from dotenv import load_dotenv
+from config import TMDB_LANGUAGE
 
 load_dotenv()
 API_KEY = os.getenv("TMDB_API_KEY")
@@ -10,12 +14,16 @@ if not API_KEY:
     pass
 
 _session = requests.Session()
+# Retry on 429/5xx with backoff
+_retry = Retry(total=2, backoff_factor=0.5, status_forcelist=[429, 500, 502, 503, 504], allowed_methods=["GET"])
+_session.mount("https://", HTTPAdapter(max_retries=_retry))
+_session.mount("http://", HTTPAdapter(max_retries=_retry))
 TIMEOUT = 5
 
 
 def _request(url, params=None):
     """Helper with timeout and consistent params."""
-    default_params = {"api_key": API_KEY, "language": "fr-FR"}
+    default_params = {"api_key": API_KEY, "language": TMDB_LANGUAGE}
     if params:
         default_params.update(params)
     resp = _session.get(url, params=default_params, timeout=TIMEOUT)
@@ -67,8 +75,9 @@ def search_movie(title):
     return results[:3]
 
 
+@lru_cache(maxsize=128)
 def get_movie_info(movie_id):
-    """Get the movie info from TMDB API. Uses 2 HTTP calls max."""
+    """Get the movie info from TMDB API. Uses 2 HTTP calls max. Cached 128 entries."""
     try:
         film = get_API_movie_details(movie_id)
     except requests.RequestException:

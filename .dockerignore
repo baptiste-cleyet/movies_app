@@ -9,3 +9,4 @@ data/database.db
 .venv
 .pytest_cache/
 static/css/tailwind.css
+static/dist/

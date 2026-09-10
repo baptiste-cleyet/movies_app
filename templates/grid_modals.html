@@ -59,11 +59,11 @@
     </div>
 </div>
 
-<!-- Search modal -->
-<div id="search-modal" class="fixed inset-0 hidden justify-items-center">
-    <div class="fixed bottom-0 flex items-center justify-center z-50">
+<!-- Search modal - stays open on outside click, posters remain clickable -->
+<div id="search-modal" class="fixed inset-0 hidden justify-items-center pointer-events-none">
+    <div class="fixed bottom-0 flex items-center justify-center z-50 pointer-events-auto left-0 right-0">
         <div
-            class="bg-white/20 backdrop-blur-md border border-white/30 p-4 rounded-2xl shadow-xl justify-items-center"
+            class="bg-white/20 backdrop-blur-md border border-white/30 p-4 rounded-2xl shadow-xl justify-items-center pointer-events-auto"
         >
             <input
                 type="text"

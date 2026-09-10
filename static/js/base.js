@@ -138,28 +138,30 @@ export function addClosers(modalElements) {
             }
         }
     });
-    for (const element of modalElements) {
-        document.addEventListener("mousedown", function (event) {
+    document.addEventListener("mousedown", function (event) {
+        for (const element of modalElements) {
+            // Search modal stays when clicking outside (per UX requirement)
+            if (element["modal"].id === "search-modal") continue;
             if (event.target === element["modal"]) {
                 element["modal"].classList.add("hidden");
             }
-        });
-    }
+        }
+    });
 }
 
 // Grid helpers
 export function sortMovies(movies, criterion = "date-sort", increasing = false) {
     const sortFunctions = {
-        "rating-sort": (a, b) => a.rating - b.rating,
+        "rating-sort": (a, b) => (a.rating ?? -1) - (b.rating ?? -1),
         "title-sort": (a, b) => a.title.localeCompare(b.title),
         "date-sort": (a, b) => new Date(a.date) - new Date(b.date),
-        "year-sort": (a, b) => a.year - b.year,
+        "year-sort": (a, b) => (a.year ?? 0) - (b.year ?? 0),
     };
     if (!sortFunctions[criterion]) {
         console.warn(`Critère de tri inconnu : ${criterion}, tri par date par défaut.`);
         return movies;
     }
-    return movies.sort((a, b) => {
+    return [...movies].sort((a, b) => {
         const result = sortFunctions[criterion](a, b);
         return increasing ? result : -result;
     });
@@ -197,6 +199,12 @@ function ensureTooltip() {
     return tip;
 }
 
+function escapeHtml(str) {
+    const div = document.createElement("div");
+    div.textContent = str;
+    return div.innerHTML;
+}
+
 function updateAutocompleteSubmit() {
     const hid = document.getElementById("movie_add");
     const val = hid ? hid.value : "";
@@ -211,9 +219,10 @@ export function addSearchPosters(title, posterContainer, signal) {
     const hiddenInput = document.getElementById("movie_add");
     if (hiddenInput) hiddenInput.value = "";
     updateAutocompleteSubmit();
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
     fetch("/search_movie", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", "X-CSRFToken": csrfToken || "" },
         body: JSON.stringify({ title: title }),
         signal,
     })
@@ -221,29 +230,48 @@ export function addSearchPosters(title, posterContainer, signal) {
         .then((data) => {
             posterContainer.innerHTML = "";
             if (data.error) {
-                posterContainer.innerHTML = `<p class="col-span-3 text-center text-sm">${data.error}</p>`;
+                posterContainer.innerHTML = `<p class="col-span-3 text-center text-sm">${escapeHtml(data.error)}</p>`;
                 return;
             }
             if (typeof data.results === "string") {
-                posterContainer.innerHTML = `<p class="col-span-3 text-center text-sm">${data.results}</p>`;
+                posterContainer.innerHTML = `<p class="col-span-3 text-center text-sm">${escapeHtml(data.results)}</p>`;
                 return;
             }
             if (!data.results || data.results.length === 0) {
                 posterContainer.innerHTML = '<p class="col-span-3 text-center text-sm">Aucun film trouvé</p>';
                 return;
             }
+            const isGrid = posterContainer.classList.contains("grid");
             data.results.forEach((movie) => {
                 const year = (movie.release_date || "").split("-")[0] || "";
                 const card = document.createElement("div");
                 card.className = "search-card cursor-pointer border-2 border-transparent rounded-lg text-center hover:border-(--secondary-color) transition flex-shrink-0 relative overflow-hidden";
-                card.style.width = "110px";
+                card.style.width = isGrid ? "100%" : "110px";
                 card.setAttribute("role", "option");
                 card.dataset.id = movie.id;
                 const imgSrc = movie.poster_path ? "https://image.tmdb.org/t/p/w500" + movie.poster_path : "";
-                card.innerHTML = `${imgSrc ? `<img src="${imgSrc}" alt="${movie.title}" style="width:100%;height:110px;object-fit:cover;" class="rounded">` : `<div style="width:100%;height:110px;" class="bg-gray-300 rounded flex items-center justify-center text-xs">Pas d'affiche</div>`}`;
+                const imgHeight = isGrid ? "80px" : "110px";
+                if (imgSrc) {
+                    const img = document.createElement("img");
+                    img.src = imgSrc;
+                    img.alt = movie.title;
+                    img.style.width = "100%";
+                    img.style.height = imgHeight;
+                    img.style.objectFit = "cover";
+                    img.className = "rounded";
+                    img.loading = "lazy";
+                    card.appendChild(img);
+                } else {
+                    const placeholder = document.createElement("div");
+                    placeholder.style.width = "100%";
+                    placeholder.style.height = imgHeight;
+                    placeholder.className = "bg-gray-300 rounded flex items-center justify-center text-xs";
+                    placeholder.textContent = "Pas d'affiche";
+                    card.appendChild(placeholder);
+                }
                 const tooltip = ensureTooltip();
                 const showTip = (e) => {
-                    tooltip.innerHTML = `<div style="font-weight:600;">${movie.title}</div><div style="opacity:0.8;">${year}</div>`;
+                    tooltip.innerHTML = `<div style="font-weight:600;">${escapeHtml(movie.title)}</div><div style="opacity:0.8;">${escapeHtml(year)}</div>`;
                     tooltip.style.display = "block";
                     const x = e.clientX + 12;
                     const y = e.clientY + 12;
@@ -273,6 +301,14 @@ export function addSearchPosters(title, posterContainer, signal) {
                     card.classList.add("ring-2", "ring-(--secondary-color)", "border-(--secondary-color)");
                     if (hiddenInput) hiddenInput.value = movie.id;
                     updateAutocompleteSubmit();
+                    // Watchlist: click on poster directly submits the form (no validate button)
+                    const form = document.getElementById("add-form");
+                    if (form && form.action.includes("/add_movie_watchlist")) {
+                        // hide tooltip before navigation
+                        const tip = document.getElementById("autocomplete-tooltip");
+                        if (tip) tip.style.display = "none";
+                        form.requestSubmit();
+                    }
                 });
                 posterContainer.appendChild(card);
             });

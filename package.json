@@ -2,16 +2,13 @@
   "devDependencies": {
     "@tailwindcss/cli": "^4.3.3",
     "@tailwindcss/vite": "^4.3.3",
+    "lucide": "^0.469.0",
     "tailwindcss": "^4.3.3",
     "vite": "^8.2.2"
-  },
-  "dependencies": {
-    "lucide": "^0.469.0"
   },
   "scripts": {
     "build": "vite build",
     "dev": "vite",
-    "build:css": "vite build",
     "postinstall": "mkdir -p static/js/vendor && cp -r node_modules/lucide/dist/esm static/js/vendor/lucide 2>/dev/null || true"
   }
 }
