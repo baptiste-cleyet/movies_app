@@ -5,14 +5,11 @@
     {% endblock %}
 
 	{% block scripts %}
-		<script src="{{ url_for('static', filename='js/grid.js') }}" defer></script>
-		<script src="{{ url_for('static', filename='js/watchlist.js') }}" defer></script>
+		<script type="module" src="{{ url_for('static', filename='js/grid.js') }}"></script>
+		<script type="module" src="{{ url_for('static', filename='js/watchlist.js') }}"></script>
 	{% endblock %}
 
     {% block modals %} 
         {% include "grid_modals.html" %}
         {% include "watchlist_modals.html" %} 
     {% endblock %}
-
-	</body>
-</html>

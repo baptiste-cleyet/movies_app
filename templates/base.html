@@ -11,17 +11,16 @@
         {% block stylesheets %} {% endblock %}
         <link href="{{ url_for('static', filename='css/tailwind.css') }}" rel="stylesheet">
 
+
         {% block scripts %} {% endblock %}
-        <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
-        <script src="{{ url_for('static', filename='js/base.js')}}" defer></script>
+        <script type="module" src="{{ url_for('static', filename='js/base.js')}}"></script>
 
         <title>{% block title %} {% endblock %}</title>
     </head>
     <nav class='mobile-menu fixed top-3 right-2 m-4 inline-flex items-center justify-center rounded-full text-(--primary-color) bg-(--secondary-color)/40 backdrop-blur-sm p-1 z-50' id='mobile-menu'>
 
         <a id='menu-icon' 
-        class="flex items-center gap-2 p-0.5 px-1 font-semibold"
-        onclick="toggleHidden(document.getElementById('mobile-ul'))">
+        class="flex items-center gap-2 p-0.5 px-1 font-semibold">
             <i data-lucide="square-menu" class="w-8 h-10"></i>
         </a>
         
@@ -59,7 +58,6 @@
                 <span class="hamburger-line w-8 h-1 bg-(--secondary-color) rounded-full"></span>
                 <span class="hamburger-line w-8 h-1 bg-(--secondary-color) rounded-full"></span>
             </button>
-
 
             
             <div class="menu absolute top-0 left-0 mt-16 w-48 shadow-xl rounded-lg overflow-hidden">

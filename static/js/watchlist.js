@@ -1,57 +1,35 @@
-document.addEventListener('DOMContentLoaded', init);
+import { createIcons, icons } from "./icons.js";
+import { updateScoreColors, addOpeners, addClosers } from "./base.js";
+import { addSortActions, addSearchAction } from "./grid.js";
+
+let movieGrid, sortRadios, searchInput, resetSearchButton, searchModal, modalElements, sortChoices;
+let moviesRef = { value: [] };
 
 function init() {
-    /** Initializing DOM elements and variables */
-    movieGrid = document.getElementById('movie-grid');
-    sortRadios = document.getElementById('sort-radios');
-    searchInput = document.getElementById('search-input');
-    resetSearchButton = document.getElementById('reset-search');
-    searchModal = document.getElementById('search-modal');
+    movieGrid = document.getElementById("movie-grid");
+    sortRadios = document.getElementById("sort-radios");
+    searchInput = document.getElementById("search-input");
+    resetSearchButton = document.getElementById("reset-search");
+    searchModal = document.getElementById("search-modal");
     modalElements = [
-        {
-            modal: document.getElementById('sort-modal'),
-            buttons: [
-                document.getElementById('sort-button'),
-                document.getElementById('sort-button-mobile'),
-            ],
-        },
-        {
-            modal: document.getElementById('search-modal'),
-            buttons: [
-                document.getElementById('search-button'),
-                document.getElementById('search-button-mobile'),
-            ],
-        },
-        {
-            modal: document.getElementById('add-modal'),
-            buttons: [
-                document.getElementById('add-button'),
-                document.getElementById('add-button-mobile'),
-            ],
-        },
+        { modal: document.getElementById("sort-modal"), buttons: [document.getElementById("sort-button"), document.getElementById("sort-button-mobile")] },
+        { modal: document.getElementById("search-modal"), buttons: [document.getElementById("search-button"), document.getElementById("search-button-mobile")] },
+        { modal: document.getElementById("add-modal"), buttons: [document.getElementById("add-button"), document.getElementById("add-button-mobile")] },
     ];
-    sortChoices = ['order', 'criterion'];
-
-    movies = JSON.parse(movieGrid.dataset.movies);
-
-    /** Initialize the grid and set up all event listeners */
+    sortChoices = ["order", "criterion"];
+    moviesRef.value = JSON.parse(movieGrid.dataset.movies);
     displayGrid();
-    addOpeners();
-    addClosers();
-    addSortActions();
-    addSearchAction();
+    addOpeners(modalElements);
+    addClosers(modalElements);
+    addSortActions({ sortRadios, sortChoices, moviesRef, displayGrid });
+    addSearchAction({ searchInput, resetSearchButton, searchModal, moviesRef, displayGrid });
 }
 
-/**
- * Add the movies to the grid.
- * @param {list(dict)} moviesToDisplay
- */
-function displayGrid(moviesToDisplay = movies) {
-    movieGrid.innerHTML = '';
+function displayGrid(moviesToDisplay = moviesRef.value) {
+    movieGrid.innerHTML = "";
     moviesToDisplay.forEach((movie) => {
-        const card = document.createElement('div');
-        card.className = 'movie-card';
-
+        const card = document.createElement("div");
+        card.className = "movie-card";
         card.innerHTML = `
             <div class='poster-info text-gray-400 left-2.5'>
                 <span class="score">${movie.rating} %</span>
@@ -59,31 +37,26 @@ function displayGrid(moviesToDisplay = movies) {
             <div class='poster-info text-(--ivory-cream) right-2.5'>
                 <span>${movie.year}</span>
             </div>
-            <button onclick="deleteMovieWatchlist(${movie.tmdb_id})" class='delete-button text-(--ivory-cream) justify-center z-40'">
+            <button onclick="deleteMovieWatchlist(${movie.tmdb_id})" class='delete-button text-(--ivory-cream) justify-center z-40'>
                 <i data-lucide="trash-2" class="w-10 h-12"></i>
             </button>
             <a id="${movie.tmdb_id}" class="block">
-                <img 
-                    src="${movie.poster}" 
-                    alt="${movie.title}" 
-                    class="w-full object-cover transition-opacity hover:opacity-50"
-                >
+                <img src="${movie.poster}" alt="${movie.title}" class="w-full object-cover transition-opacity hover:opacity-50">
             </a>
         `;
         movieGrid.appendChild(card);
     });
     updateScoreColors();
-    lucide.createIcons();
+    createIcons({ icons });
 }
 
-async function deleteMovieWatchlist(tmdbId) {
+window.deleteMovieWatchlist = async function (tmdbId) {
     const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
     const response = await fetch(`/delete_movie_watchlist/${tmdbId}`, {
-        method: 'POST',
-        headers: { 'X-CSRFToken': csrfToken },
+        method: "POST",
+        headers: { "X-CSRFToken": csrfToken },
     });
-    
-    if (response.ok) {
-        window.location.reload();
-    }
-}
+    if (response.ok) window.location.reload();
+};
+
+document.addEventListener("DOMContentLoaded", init);

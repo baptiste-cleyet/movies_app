@@ -3,18 +3,10 @@
 {% extends "grid.html" %} 
 {% block title %} Films {% endblock %} 
 {% block scripts %}
-    <script
-        src="{{ url_for('static', filename='js/movie_grid.js') }}"
-        defer
-    ></script>
-    <script
-        src="{{ url_for('static', filename='js/grid.js') }}"
-        defer
-    ></script>
+    <script type="module" src="{{ url_for('static', filename='js/grid.js') }}"></script>
+    <script type="module" src="{{ url_for('static', filename='js/movie_grid.js') }}"></script>
 {% endblock %}
 {% block modals %}
     {% include "grid_modals.html" %} 
     {% include "movie_grid_modals.html" %} 
 {% endblock %}
-</body>
-</html>
