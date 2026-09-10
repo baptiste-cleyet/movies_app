@@ -40,15 +40,28 @@ def create_app(test_config=None):
     app.register_blueprint(main_bp)
     app.register_blueprint(api_bp)
 
-    # Vite manifest helper for CSS/JS assets
+    # Vite manifest helper for CSS/JS assets (robust for Docker vs local)
     def vite_asset(entry):
-        manifest_path = pathlib.Path(app.static_folder) / "dist" / ".vite" / "manifest.json"
+        # Try both manifest locations (Vite 5/6 vs 8)
+        candidates = [
+            pathlib.Path(app.static_folder) / "dist" / ".vite" / "manifest.json",
+            pathlib.Path(app.static_folder) / "dist" / "manifest.json",
+        ]
+        for manifest_path in candidates:
+            try:
+                if manifest_path.exists():
+                    data = json.loads(manifest_path.read_text())
+                    if entry in data:
+                        return url_for("static", filename="dist/" + data[entry]["file"])
+            except Exception:
+                continue
+        # Fallback: glob for style assets if manifest missing (e.g., Docker build mismatch)
         try:
-            if manifest_path.exists():
-                data = json.loads(manifest_path.read_text())
-                # entry like "static/css/base.css" or "static/js/base.js"
-                if entry in data:
-                    return url_for("static", filename="dist/" + data[entry]["file"])
+            dist_assets = pathlib.Path(app.static_folder) / "dist" / "assets"
+            if dist_assets.exists() and entry == "static/css/base.css":
+                # find style-* or style.*.css
+                for p in dist_assets.glob("style*.css"):
+                    return url_for("static", filename=f"dist/assets/{p.name}")
         except Exception:
             pass
         return None

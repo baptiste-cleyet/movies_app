@@ -2,9 +2,9 @@ FROM node:20-slim AS frontend
 WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm ci
-COPY static/js ./static/js
-COPY static/css ./static/css
 COPY vite.config.js ./
+COPY static ./static
+COPY templates ./templates
 RUN npm run build
 
 FROM python:3.11.11-slim-bookworm
