@@ -1,13 +1,17 @@
 from flask import Blueprint, render_template, abort
-from modules.db import query_fetch
-from modules.menu import DARK_MODE_ITEMS, SORT_ITEMS_MOVIES, SORT_ITEMS_WATCHLIST, get_detail_menu
+from app.extensions import db
+from app.models import Movie, Watchlist
+from app.menu import DARK_MODE_ITEMS, SORT_ITEMS_MOVIES, SORT_ITEMS_WATCHLIST, get_detail_menu
 
 bp = Blueprint("main", __name__)
 
 
 @bp.route("/")
 def index():
-    movies = query_fetch("SELECT date, title, rating, year, tmdb_id, poster FROM movies ORDER BY date DESC")
+    movies = Movie.query.order_by(Movie.date.desc()).all()
+    movies = [m.to_dict() for m in movies]
+    # filter to needed fields for template
+    movies = [{k: m[k] for k in ("date", "title", "rating", "year", "tmdb_id", "poster")} for m in movies]
     menuItems = [
         {"id": "watchlist-button", "name": "Watchlist", "iconName": "eye", "href": "/watchlist"},
         {"id": "search-button", "name": "Rechercher", "iconName": "search"},
@@ -19,7 +23,7 @@ def index():
 
 @bp.route("/watchlist")
 def watchlist():
-    movies = query_fetch("SELECT * FROM watchlist")
+    movies = [m.to_dict() for m in Watchlist.query.all()]
     menuItems = [
         {"id": "movie-grid-button", "name": "Grille de films", "iconName": "layout-grid", "href": "/"},
         {"id": "search-button", "name": "Rechercher", "iconName": "search"},
@@ -31,9 +35,10 @@ def watchlist():
 
 @bp.route("/<int:tmdb_id>")
 def movie_detail(tmdb_id):
-    movie = query_fetch("SELECT * FROM movies WHERE tmdb_id = ?", params=(tmdb_id,), fetchone=True)
+    movie = Movie.query.get(tmdb_id)
     if not movie:
         abort(404)
-    genres = query_fetch("SELECT genre FROM genres WHERE tmdb_id = ?", params=(tmdb_id,))
+    movie_dict = movie.to_dict()
+    genres = [g.genre for g in movie.genres]
     menuItems = get_detail_menu(tmdb_id)
-    return render_template("movie_detail.html", movie=movie, menuItems=menuItems, genres=[g["genre"] for g in genres])
+    return render_template("movie_detail.html", movie=movie_dict, menuItems=menuItems, genres=genres)

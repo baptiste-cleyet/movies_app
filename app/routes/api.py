@@ -1,21 +1,10 @@
 from flask import Blueprint, request, jsonify, redirect, current_app
-from modules.movie_info_request import get_movie_info, search_movie
-from modules.db import get_db
+from app.movie_info_request import get_movie_info, search_movie
+from app.extensions import db
+from app.models import Movie, Genre, Watchlist
+from sqlalchemy.dialects.sqlite import insert as sqlite_insert
 
 bp = Blueprint("api", __name__)
-
-
-def _validate_rating(value):
-    if value is None or value == "":
-        abort_msg = "Note requise"
-        return None, abort_msg
-    try:
-        r = int(value)
-    except (ValueError, TypeError):
-        return None, "Note invalide"
-    if not 0 <= r <= 100:
-        return None, "Note doit être entre 0 et 100"
-    return r, None
 
 
 @bp.route("/add_movie", methods=["POST", "GET"])
@@ -51,22 +40,41 @@ def add_movie():
         movie_info["date"] = date
         movie_info["review"] = review
 
-        columns = ("tmdb_id", "title", "poster", "rating", "date", "year", "summary", "review", "director", "runtime", "average_rating", "banner")
-        placeholders = ", ".join(["?"] * len(columns))
-        update_clause = ", ".join([f"{c} = excluded.{c}" for c in columns[1:]])
-        query_add = f"INSERT into movies ({', '.join(columns)}) values({placeholders}) ON CONFLICT(tmdb_id) DO UPDATE SET {update_clause};"
-        params = tuple(movie_info[c] for c in columns)
-
         try:
-            conn = get_db()
-            conn.execute(query_add, params)
-            # persist genres (already filled per user, but ensure up-to-date)
+            movie = Movie.query.get(movie_id_int)
+            if movie:
+                for col in ("title", "poster", "rating", "date", "year", "summary", "review", "director", "runtime", "average_rating", "banner"):
+                    setattr(movie, col, movie_info[col])
+            else:
+                movie = Movie(
+                    tmdb_id=movie_id_int,
+                    title=movie_info["title"],
+                    poster=movie_info["poster"],
+                    rating=movie_info["rating"],
+                    date=movie_info["date"],
+                    year=int(movie_info["year"]) if movie_info["year"] else None,
+                    summary=movie_info["summary"],
+                    review=movie_info["review"],
+                    director=movie_info["director"],
+                    runtime=movie_info["runtime"],
+                    average_rating=movie_info["average_rating"],
+                    banner=movie_info["banner"],
+                )
+                db.session.add(movie)
+            db.session.flush()
+            # sync genres
+            existing = {g.genre for g in movie.genres}
             for g in movie_info.get("genres", []):
-                conn.execute("INSERT OR IGNORE INTO genres(tmdb_id, genre) VALUES (?, ?)", (movie_id_int, g))
-            conn.execute("DELETE FROM watchlist WHERE tmdb_id = ?", (movie_id_int,))
-            conn.commit()
+                if g not in existing:
+                    db.session.add(Genre(tmdb_id=movie_id_int, genre=g))
+            # remove from watchlist
+            wl = Watchlist.query.get(movie_id_int)
+            if wl:
+                db.session.delete(wl)
+            db.session.commit()
             return redirect(f"/{movie_id_int}")
-        except Exception as e:
+        except Exception:
+            db.session.rollback()
             current_app.logger.exception("add_movie DB error")
             error = "Une erreur est survenue lors de l'ajout du film à la base de données."
             return jsonify({"error": error}), 400
@@ -88,17 +96,22 @@ def add_movie_watchlist():
         movie_info = get_movie_info(movie_id_int)
         if not movie_info:
             return jsonify({"error": "Film introuvable."}), 400
-        movie_info["rating"] = movie_info["average_rating"]
-        columns = ("tmdb_id", "title", "poster", "year", "rating")
-        placeholders = ", ".join(["?"] * len(columns))
-        query = f"INSERT into watchlist ({', '.join(columns)}) values({placeholders}) ON CONFLICT(tmdb_id) DO NOTHING;"
-        params = tuple(movie_info[c] for c in columns)
+
         try:
-            conn = get_db()
-            conn.execute(query, params)
-            conn.commit()
+            if Watchlist.query.get(movie_id_int):
+                return redirect("/watchlist")
+            wl = Watchlist(
+                tmdb_id=movie_id_int,
+                title=movie_info["title"],
+                poster=movie_info["poster"],
+                year=int(movie_info["year"]) if movie_info["year"] else 0,
+                rating=movie_info["average_rating"] or 0,
+            )
+            db.session.add(wl)
+            db.session.commit()
             return redirect("/watchlist")
-        except Exception as e:
+        except Exception:
+            db.session.rollback()
             current_app.logger.exception("add_movie_watchlist DB error")
             error = "Une erreur est survenue lors de l'ajout du film à la base de données."
             return jsonify({"error": error}), 400
@@ -136,16 +149,18 @@ def update_movie(tmdb_id):
         summary = (request.form.get("summary") or "")[:2000]
         date = request.form.get("date") or None
         review = (request.form.get("review") or "")[:2000]
-        columns = ("rating", "date", "summary", "review")
-        vals = {"rating": rating, "date": date, "summary": summary, "review": review}
-        query = f"UPDATE movies SET {', '.join([f'{c} = ?' for c in columns])} WHERE tmdb_id = ?;"
-        params = tuple(vals[c] for c in columns) + (tmdb_id,)
         try:
-            conn = get_db()
-            conn.execute(query, params)
-            conn.commit()
+            movie = Movie.query.get(tmdb_id)
+            if not movie:
+                return jsonify({"error": "Film introuvable."}), 404
+            movie.rating = rating
+            movie.date = date
+            movie.summary = summary
+            movie.review = review
+            db.session.commit()
             return redirect(f"/{tmdb_id}")
-        except Exception as e:
+        except Exception:
+            db.session.rollback()
             current_app.logger.exception("update_movie DB error")
             error = "Une erreur est survenue lors de la mise à jour du film dans la base de données."
             return jsonify({"error": error}), 400
@@ -157,11 +172,13 @@ def delete_movie(tmdb_id):
     error = "Une erreur est survenue."
     if request.method == "POST":
         try:
-            conn = get_db()
-            conn.execute("DELETE FROM movies WHERE tmdb_id = ?", (tmdb_id,))
-            conn.commit()
+            movie = Movie.query.get(tmdb_id)
+            if movie:
+                db.session.delete(movie)
+                db.session.commit()
             return redirect("/")
-        except Exception as e:
+        except Exception:
+            db.session.rollback()
             current_app.logger.exception("delete_movie DB error")
             error = "Une erreur est survenue lors de la suppression du film de la base de données."
             return jsonify({"error": error}), 400
@@ -173,11 +190,13 @@ def delete_movie_watchlist(tmdb_id):
     error = "Une erreur est survenue."
     if request.method == "POST":
         try:
-            conn = get_db()
-            conn.execute("DELETE FROM watchlist WHERE tmdb_id = ?", (tmdb_id,))
-            conn.commit()
+            wl = Watchlist.query.get(tmdb_id)
+            if wl:
+                db.session.delete(wl)
+                db.session.commit()
             return "", 204
-        except Exception as e:
+        except Exception:
+            db.session.rollback()
             current_app.logger.exception("delete_movie_watchlist DB error")
             error = "Une erreur est survenue lors de la suppression du film de la watchlist."
             return jsonify({"error": error}), 400

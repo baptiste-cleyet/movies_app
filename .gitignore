@@ -6,6 +6,8 @@ data/database.db
 database.db
 node_modules/
 static/css/tailwind.css
+static/dist/
+static/js/vendor/
 .pytest_cache/
 .directory
 vendor/
