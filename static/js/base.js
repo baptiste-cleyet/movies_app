@@ -78,6 +78,41 @@ document.addEventListener("DOMContentLoaded", function () {
 
     updateScoreColors();
     createIcons({ icons });
+
+    // Summary/Review length warning (>4500/5000) - select textareas only, not <p> with same id on detail page
+    ["summary", "review"].forEach((field) => {
+        // Handle both add and update modals; use textarea selector to avoid <p id="summary"> collision
+        const tas = document.querySelectorAll(`textarea[name="${field}"]`);
+        if (tas.length === 0) return;
+        tas.forEach((ta) => {
+            // Find warning/count relative to this textarea: look in same form or next sibling
+            const form = ta.closest("form");
+            const warning = form ? form.querySelector(`#${field}-warning`) : document.getElementById(`${field}-warning`);
+            const countEl = form ? form.querySelector(`#${field}-count`) : document.getElementById(`${field}-count`);
+            // Fallback to global warning if form-scoped not found (handles duplicate IDs)
+            const warningEl = warning || document.getElementById(`${field}-warning`);
+            const countElement = countEl || document.getElementById(`${field}-count`);
+            if (!warningEl) return;
+            function check() {
+                const len = (ta.value || "").length;
+                if (countElement) countElement.textContent = len;
+                if (len > 4500) {
+                    warningEl.classList.remove("hidden");
+                    if (len >= 5000) {
+                        warningEl.classList.add("text-red-600");
+                        warningEl.classList.remove("text-amber-500");
+                    } else {
+                        warningEl.classList.add("text-amber-500");
+                        warningEl.classList.remove("text-red-600");
+                    }
+                } else {
+                    warningEl.classList.add("hidden");
+                }
+            }
+            ta.addEventListener("input", check);
+            check();
+        });
+    });
 });
 
 export function toggleDarkMode() {

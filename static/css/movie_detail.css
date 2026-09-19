@@ -16,14 +16,20 @@
 }
 
 .accordion-content {
-    max-height: 0;
+    display: grid;
+    grid-template-rows: 0fr;
+    transition: grid-template-rows 0.3s ease-out;
     overflow: hidden;
-    transition: max-height 0.3s ease-out;
+}
+
+.accordion-content > * {
+    overflow: hidden;
+    min-height: 0;
 }
 
 .accordion.active .accordion-content {
-    max-height: 500px;
-    transition: max-height 0.5s ease-in;
+    grid-template-rows: 1fr;
+    transition: grid-template-rows 0.5s ease-in;
 }
 
 .accordion.active .accordion-icon {

@@ -28,8 +28,10 @@
                 id="summary"
                 name="summary"
                 rows="6"
-                class="w-full p-2 border border-(--secondary-color) bg-(--primary-color) text-(--secondary-color) placeholder-(--secondary-color) rounded mb-4"
+                maxlength="5000"
+                class="w-full p-2 border border-(--secondary-color) bg-(--primary-color) text-(--secondary-color) placeholder-(--secondary-color) rounded mb-1"
                 >{{ movie.summary }}</textarea>
+                <p id="summary-warning" class="text-amber-500 text-xs hidden mb-2">Attention : vous approchez de la limite (<span id="summary-count">0</span>/5000)</p>
                 <br />
             </div>
             
@@ -52,8 +54,10 @@
                     id="review"
                     name="review"
                     rows="6"
-                    class="w-full p-2 border border-(--secondary-color) bg-(--primary-color) text-(--secondary-color) placeholder-(--secondary-color) rounded mb-4"
+                    maxlength="5000"
+                    class="w-full p-2 border border-(--secondary-color) bg-(--primary-color) text-(--secondary-color) placeholder-(--secondary-color) rounded mb-1"
                 >{{ movie.review }}</textarea>
+                <p id="review-warning" class="text-amber-500 text-xs hidden mb-2">Attention : vous approchez de la limite (<span id="review-count">0</span>/5000)</p>
                 <br />
             </div>
 

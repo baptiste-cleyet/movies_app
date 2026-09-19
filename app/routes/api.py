@@ -40,12 +40,12 @@ def add_movie():
     if rating is not None and not 0 <= rating <= 100:
         return jsonify({"error": "Note doit être entre 0 et 100."}), 400
 
-    summary = (request.form.get("summary") or "")[:2000]
+    summary = (request.form.get("summary") or "")[:5000]
     date_raw = request.form.get("date") or None
     if date_raw and _validate_date(date_raw) is None:
         return jsonify({"error": "Date invalide."}), 400
     date = date_raw or None
-    review = (request.form.get("review") or "")[:2000]
+    review = (request.form.get("review") or "")[:5000]
 
     movie_info["rating"] = rating
     movie_info["summary"] = summary
@@ -152,12 +152,12 @@ def update_movie(tmdb_id):
         return jsonify({"error": "Note invalide."}), 400
     if rating is not None and not 0 <= rating <= 100:
         return jsonify({"error": "Note doit être entre 0 et 100."}), 400
-    summary = (request.form.get("summary") or "")[:2000]
+    summary = (request.form.get("summary") or "")[:5000]
     date_raw = request.form.get("date") or None
     if date_raw and _validate_date(date_raw) is None:
         return jsonify({"error": "Date invalide."}), 400
     date = date_raw or None
-    review = (request.form.get("review") or "")[:2000]
+    review = (request.form.get("review") or "")[:5000]
     try:
         movie = db.session.get(Movie, tmdb_id)
         if not movie:
