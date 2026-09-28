@@ -1,9 +1,9 @@
 <!-- Add movie modal -->
 <div
     id="add-modal"
-    class="fixed inset-0 bg-black/75 flex items-center justify-center z-50 hidden"
+    class="fixed inset-0 bg-black/75 flex items-center justify-center z-50 hidden p-4"
 >
-    <div class="bg-(--primary-color) rounded-lg p-6 w-auto max-w-xl mx-4 max-h-[85vh] overflow-y-auto">
+    <div class="bg-(--primary-color) rounded-lg p-6 sm:p-8 w-full max-w-3xl mx-4 max-h-[90vh] overflow-y-auto">
         <form id="add-form" method="post" action="/add_movie_watchlist">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <input type="hidden" name="movie_add" id="movie_add" value="">
@@ -22,7 +22,7 @@
                 />
                 <p class="text-xs text-gray-500 mb-2">Résultats mis à jour à la frappe — cliquez sur une affiche pour ajouter</p>
 
-                <div id="corresponding-poster" role="listbox" class="flex flex-wrap gap-3 mb-4 min-h-[1rem] justify-center items-start max-w-full overflow-hidden">
+                <div id="corresponding-poster" role="listbox" class="flex flex-wrap gap-4 mt-2 mb-4 min-h-[1rem] justify-center items-start max-w-full overflow-hidden">
                 </div>
             </div>
         </form>

@@ -281,11 +281,11 @@ export function addSearchPosters(title, posterContainer, signal) {
                 const year = (movie.release_date || "").split("-")[0] || "";
                 const card = document.createElement("div");
                 card.className = "search-card cursor-pointer border-2 border-transparent rounded-lg text-center hover:border-(--secondary-color) transition flex-shrink-0 relative overflow-hidden";
-                card.style.width = isGrid ? "100%" : "110px";
+                card.style.width = isGrid ? "100%" : "140px";
                 card.setAttribute("role", "option");
                 card.dataset.id = movie.id;
                 const imgSrc = movie.poster_path ? "https://image.tmdb.org/t/p/w500" + movie.poster_path : "";
-                const imgHeight = isGrid ? "80px" : "110px";
+                const imgHeight = isGrid ? "140px" : "140px";
                 if (imgSrc) {
                     const img = document.createElement("img");
                     img.src = imgSrc;
