@@ -3,11 +3,15 @@ __pycache__/
 *.pyc
 .venv/
 data/database.db
+*.db-shm
+*.db-wal
+*.db-journal
 database.db
 node_modules/
 static/css/tailwind.css
 static/dist/
 static/js/vendor/
 .pytest_cache/
+.coverage
 .directory
 vendor/
