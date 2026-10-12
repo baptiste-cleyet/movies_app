@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template, abort
 from app.extensions import db
 from app.models import Movie, Watchlist
-from app.menu import DARK_MODE_ITEMS, SORT_ITEMS_MOVIES, SORT_ITEMS_WATCHLIST, get_detail_menu
+from app.menu import DARK_MODE_ITEMS, LOGOUT_ITEM, SORT_ITEMS_MOVIES, SORT_ITEMS_WATCHLIST, get_detail_menu
 
 bp = Blueprint("main", __name__)
 
@@ -15,21 +15,21 @@ def index():
         {"id": "search-button", "name": "Rechercher", "iconName": "search"},
         {"id": "sort-button", "name": "Trier", "iconName": "arrow-down-wide-narrow"},
         {"id": "add-button", "name": "Ajouter", "iconName": "file-plus-2"},
-    ] + DARK_MODE_ITEMS
-    return render_template("movie_grid.html", movies=movies, menuItems=menuItems, sortItems=SORT_ITEMS_MOVIES)
+    ] + DARK_MODE_ITEMS + [LOGOUT_ITEM]
+    return render_template("movie_grid.html", movies=movies, menuItems=menuItems, sortItems=SORT_ITEMS_MOVIES, defaultSort="date-sort")
 
 
 @bp.route("/watchlist")
 def watchlist():
-    rows = Watchlist.query.with_entities(Watchlist.tmdb_id, Watchlist.title, Watchlist.poster, Watchlist.year, Watchlist.rating).all()
+    rows = Watchlist.query.with_entities(Watchlist.tmdb_id, Watchlist.title, Watchlist.poster, Watchlist.year, Watchlist.rating).order_by(Watchlist.rating.desc()).all()
     movies = [dict(zip(["tmdb_id", "title", "poster", "year", "rating"], r)) for r in rows]
     menuItems = [
         {"id": "movie-grid-button", "name": "Grille de films", "iconName": "layout-grid", "href": "/"},
         {"id": "search-button", "name": "Rechercher", "iconName": "search"},
         {"id": "sort-button", "name": "Trier", "iconName": "arrow-down-wide-narrow"},
         {"id": "add-button", "name": "Ajouter", "iconName": "file-plus-2"},
-    ] + DARK_MODE_ITEMS
-    return render_template("watchlist.html", movies=movies, menuItems=menuItems, sortItems=SORT_ITEMS_WATCHLIST)
+    ] + DARK_MODE_ITEMS + [LOGOUT_ITEM]
+    return render_template("watchlist.html", movies=movies, menuItems=menuItems, sortItems=SORT_ITEMS_WATCHLIST, defaultSort="rating-sort")
 
 
 @bp.route("/<int:tmdb_id>")

@@ -1,3 +1,7 @@
+import json
+import re
+
+
 def test_index(client):
     r = client.get("/")
     assert r.status_code == 200
@@ -6,6 +10,37 @@ def test_index(client):
 def test_watchlist(client):
     r = client.get("/watchlist")
     assert r.status_code == 200
+
+def _grid_movies(html):
+    m = re.search(r"data-movies='(.*?)'", html, re.DOTALL)
+    assert m, "data-movies introuvable"
+    return json.loads(m.group(1))
+
+
+def test_watchlist_default_sort_rating_desc(client, app):
+    from app.extensions import db as _db
+    from app.models import Watchlist
+    with app.app_context():
+        _db.session.add_all([
+            Watchlist(tmdb_id=901, title="Low", poster="p", year=2020, rating=20),
+            Watchlist(tmdb_id=902, title="High", poster="p", year=2021, rating=90),
+            Watchlist(tmdb_id=903, title="Mid", poster="p", year=2022, rating=50),
+        ])
+        _db.session.commit()
+    r = client.get("/watchlist")
+    assert r.status_code == 200
+    html = r.get_data(as_text=True)
+    # Ordre décroissant par note dans le JSON initial : High (902), Mid (903), Low (901)
+    assert [m["tmdb_id"] for m in _grid_movies(html)] == [902, 903, 901]
+    # Critère « note » coché par défaut dans la modale de tri de la watchlist
+    after = html.split('value="rating-sort"')[1].split("/>")[0]
+    assert "checked" in after
+
+
+def test_grid_default_sort_date(client):
+    html = client.get("/").get_data(as_text=True)
+    after = html.split('value="date-sort"')[1].split("/>")[0]
+    assert "checked" in after
 
 def test_movie_detail_404(client):
     r = client.get("/9999999")

@@ -15,7 +15,7 @@ function renderWatchlist(moviesToDisplay, movieGrid) {
             <button onclick="deleteMovieWatchlist(${movie.tmdb_id})" class='delete-button text-(--ivory-cream) justify-center z-40'>
                 <i data-lucide="trash-2" class="w-10 h-12"></i>
             </button>
-            <a id="${movie.tmdb_id}" class="block">
+            <a id="${movie.tmdb_id}" class="block" href="https://www.themoviedb.org/movie/${movie.tmdb_id}" target="_blank" rel="noopener">
                 <img src="${posterSrc}" alt="${movie.title}" loading="lazy" class="w-full object-cover transition-opacity hover:opacity-50">
             </a>
         `;
