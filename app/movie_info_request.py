@@ -7,11 +7,12 @@ from dotenv import load_dotenv
 from config import TMDB_LANGUAGE
 
 load_dotenv()
-API_KEY = os.getenv("TMDB_API_KEY")
 
-if not API_KEY:
-    # Fail fast with clear message; defer raise until used if needed for import-time tests
-    pass
+
+def _api_key():
+    # Lecture paresseuse : la variable peut être définie après l'import
+    # (ex. variables d'environnement alwaysdata chargées au démarrage uWSGI).
+    return os.getenv("TMDB_API_KEY")
 
 _session = requests.Session()
 # Retry on 429/5xx with backoff
@@ -23,7 +24,7 @@ TIMEOUT = 5
 
 def _request(url, params=None):
     """Helper with timeout and consistent params."""
-    default_params = {"api_key": API_KEY, "language": TMDB_LANGUAGE}
+    default_params = {"api_key": _api_key(), "language": TMDB_LANGUAGE}
     if params:
         default_params.update(params)
     resp = _session.get(url, params=default_params, timeout=TIMEOUT)
