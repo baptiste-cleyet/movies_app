@@ -17,6 +17,10 @@ import BookOpen from "./vendor/lucide/icons/book-open.js";
 import MessageSquare from "./vendor/lucide/icons/message-square.js";
 import CircleChevronDown from "./vendor/lucide/icons/circle-chevron-down.js";
 import SquareMenu from "./vendor/lucide/icons/square-menu.js";
+import LogOut from "./vendor/lucide/icons/log-out.js";
+import LogIn from "./vendor/lucide/icons/log-in.js";
+import Lock from "./vendor/lucide/icons/lock.js";
+import EyeOff from "./vendor/lucide/icons/eye-off.js";
 import replaceElement from "./vendor/lucide/replaceElement.js";
 
 export const icons = {
@@ -39,6 +43,10 @@ export const icons = {
     MessageSquare,
     CircleChevronDown,
     SquareMenu,
+    LogOut,
+    LogIn,
+    Lock,
+    EyeOff,
 };
 
 export const createIcons = ({ icons: iconSet = icons, nameAttr = "data-lucide", attrs = {} } = {}) => {

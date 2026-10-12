@@ -1,0 +1,93 @@
+/* Page de connexion : ambiance salle de cinéma, respecte le thème clair/sombre
+   via les variables --primary-color / --secondary-color. */
+
+.login-ambient {
+    position: fixed;
+    inset: 0;
+    overflow: hidden;
+    pointer-events: none;
+}
+
+/* Halos lumineux */
+.login-ambient::before,
+.login-ambient::after {
+    content: "";
+    position: absolute;
+    width: 60vmax;
+    height: 60vmax;
+    border-radius: 9999px;
+    filter: blur(100px);
+    opacity: 0.28;
+}
+
+.login-ambient::before {
+    top: -20vmax;
+    right: -15vmax;
+    background: radial-gradient(circle, var(--secondary-color) 0%, transparent 65%);
+}
+
+.login-ambient::after {
+    bottom: -25vmax;
+    left: -15vmax;
+    background: radial-gradient(circle, var(--secondary-color) 0%, transparent 65%);
+    opacity: 0.18;
+}
+
+/* Vignettage discret */
+.login-vignette {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    background: radial-gradient(ellipse at center, transparent 55%, rgba(0, 0, 0, 0.28) 100%);
+}
+
+/* Entrée de la carte */
+@keyframes login-rise {
+    from {
+        opacity: 0;
+        transform: translateY(18px) scale(0.985);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.login-card {
+    animation: login-rise 0.5s ease both;
+}
+
+/* Secousse en cas d'erreur */
+@keyframes login-shake {
+    0%, 100% { transform: translateX(0); }
+    20% { transform: translateX(-9px); }
+    40% { transform: translateX(8px); }
+    60% { transform: translateX(-5px); }
+    80% { transform: translateX(4px); }
+}
+
+.login-shake {
+    animation: login-shake 0.45s ease both;
+}
+
+/* Pastille logo */
+.login-logo {
+    background: radial-gradient(circle, hsla(191, 41%, 33%, 1) 0%, hsla(191, 94%, 13%, 1) 100%);
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.35);
+}
+
+/* Annule le fond jaune/blanc forcé par l'autofill Chrome */
+.login-card input:-webkit-autofill,
+.login-card input:-webkit-autofill:hover,
+.login-card input:-webkit-autofill:focus {
+    -webkit-text-fill-color: var(--secondary-color);
+    -webkit-box-shadow: 0 0 0 1000px var(--primary-color) inset;
+    transition: background-color 9999s ease-in-out 0s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .login-card,
+    .login-shake {
+        animation: none;
+    }
+}

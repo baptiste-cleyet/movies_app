@@ -12,6 +12,7 @@ def app():
         "SQLALCHEMY_DATABASE_URI": f"sqlite:///{db_path}",
         "WTF_CSRF_ENABLED": False,
         "SECRET_KEY": "test-secret",
+        "SITE_PASSWORD": "test-password",
     }
     app = create_app(test_config=config)
     with app.app_context():
@@ -22,6 +23,13 @@ def app():
 
 @pytest.fixture
 def client(app):
+    # Client authentifié par défaut : les tests existants couvrent le comportement connecté.
+    c = app.test_client()
+    c.post("/login", data={"password": "test-password"})
+    return c
+
+@pytest.fixture
+def anon_client(app):
     return app.test_client()
 
 @pytest.fixture

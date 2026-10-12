@@ -3,6 +3,8 @@ DARK_MODE_ITEMS = [
     {"id": "light-mode", "name": "Clair", "iconName": "sun"},
 ]
 
+LOGOUT_ITEM = {"id": "logout-button", "name": "Déconnexion", "iconName": "log-out", "href": "/logout"}
+
 SORT_ITEMS_MOVIES = [
     {"id": "date-sort", "name": "Date de visionnage", "iconName": "calendar"},
     {"id": "title-sort", "name": "Titre", "iconName": "type"},
@@ -44,4 +46,4 @@ def get_detail_menu(tmdb_id):
         {"id": "delete-movie-button", "name": "Supprimer", "iconName": "trash-2"},
         {"id": "update-movie-button", "name": "Mettre à jour", "iconName": "pencil"},
         {"id": "tmdb-link", "name": "Page TMDB", "iconName": "square-arrow-out-up-right", "href": f"https://www.themoviedb.org/movie/{tmdb_id}", "mobileOnly": True},
-    ] + DARK_MODE_ITEMS
+    ] + DARK_MODE_ITEMS + [LOGOUT_ITEM]

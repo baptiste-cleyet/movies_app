@@ -44,11 +44,12 @@ Required variables in `.env` (see `.env.example`):
 ```
 TMDB_API_KEY=your_tmdb_api_key
 FLASK_SECRET_KEY=change-me-in-production
+SITE_PASSWORD=your-site-password
 # Optional: DATABASE_URL=sqlite:///data/database.db
 # Optional: TMDB_LANGUAGE=fr-FR
 ```
 
-`FLASK_SECRET_KEY` must be set in production (`FLASK_ENV=production` will fail fast if missing). For local dev a warning and dev fallback is used.
+`FLASK_SECRET_KEY` must be set in production (`FLASK_ENV=production` will fail fast if missing). For local dev a warning and dev fallback is used. `SITE_PASSWORD` protects the whole site behind a login page (`/login`, same fail-fast behavior); also required on alwaysdata as an environment variable.
 
 ### Database
 

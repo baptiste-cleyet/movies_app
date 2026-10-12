@@ -1,11 +1,31 @@
 import os
 import json
 import pathlib
+from datetime import timedelta
+from dotenv import load_dotenv
 from flask import Flask, render_template, url_for
-from flask_wtf.csrf import CSRFProtect
-from app.extensions import db, migrate
-from app.routes.main import bp as main_bp
-from app.routes.api import bp as api_bp
+
+# Charge le .env situé à côté de ce fichier (chemin absolu) : ne dépend pas
+# du répertoire de travail, qui varie selon le mode de lancement
+# (dev local, gunicorn, uWSGI alwaysdata). Les variables déjà définies
+# (ex. admin alwaysdata) restent prioritaires.
+load_dotenv(pathlib.Path(__file__).resolve().parent / ".env")
+
+# Alerte précoce visible dans le log uWSGI si la clé TMDB manque
+# (la recherche renverrait systématiquement « aucun résultat »).
+if not os.getenv("TMDB_API_KEY"):
+    import warnings
+
+    warnings.warn(
+        "TMDB_API_KEY is not set: la recherche de films ne renverra aucun résultat.",
+        UserWarning,
+    )
+from flask_wtf.csrf import CSRFProtect  # noqa: E402 (après load_dotenv, voulu)
+from app.auth import init_auth, register_guard  # noqa: E402
+from app.extensions import db, migrate  # noqa: E402
+from app.routes.main import bp as main_bp  # noqa: E402
+from app.routes.api import bp as api_bp  # noqa: E402
+from app.routes.auth import bp as auth_bp  # noqa: E402
 
 csrf = CSRFProtect()
 
@@ -39,6 +59,28 @@ def create_app(test_config=None):
 
     app.register_blueprint(main_bp)
     app.register_blueprint(api_bp)
+    app.register_blueprint(auth_bp)
+
+    # Session longue durée + cookie sécurisé en production (HTTPS).
+    app.config["PERMANENT_SESSION_LIFETIME"] = timedelta(
+        days=app.config.get("PERMANENT_SESSION_LIFETIME_DAYS", 30)
+    )
+    if os.getenv("FLASK_ENV") == "production":
+        app.config["SESSION_COOKIE_SECURE"] = True
+
+    # Protection globale par mot de passe (init après config).
+    init_auth(app)
+    register_guard(app)
+
+    @app.after_request
+    def no_cache_private(response):
+        # Pages HTML (contiennent le token CSRF de session) et JSON d'API :
+        # ne jamais mettre en cache (ni navigateur, ni cache mutualisé),
+        # sinon jetons périmés et fuites de contenu authentifié.
+        if response.content_type.startswith(("text/html", "application/json")):
+            response.headers["Cache-Control"] = "no-store, max-age=0"
+            response.headers["Pragma"] = "no-cache"
+        return response
 
     # Vite manifest helper for CSS/JS assets (robust for Docker vs local)
     def vite_asset(entry):
@@ -105,3 +147,7 @@ def create_app(test_config=None):
 
 
 app = create_app()
+
+# Alias requis par certains serveurs WSGI (dont uWSGI sur alwaysdata,
+# qui cherche par défaut un callable nommé `application`).
+application = app
