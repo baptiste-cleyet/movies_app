@@ -3,10 +3,10 @@
 ## Stack & entrypoints
 - `wsgi.py`: `create_app()` + module-level `app`/`application` (l'alias `application` est requis par uWSGI alwaysdata — ne pas le retirer).
 - `config.py` lit l'env **à l'import** ; `app/movie_info_request.py` lit `TMDB_API_KEY` **paresseusement** (`_api_key()`, à chaque appel) — ne jamais revenir à une lecture au niveau module, ça cassait la prod (env pas encore chargé à l'import sous uWSGI).
-- Frontend Vite+Tailwind → `static/dist/` (gitignoré). Rebuild obligatoire avant tout déploiement touchant CSS/JS **ou ajoutant des classes Tailwind dans les templates** (`npm run build`) — sinon les nouveaux utilitaires manquent dans le CSS compilé et la mise en page s'effondre.
+- Frontend Vite+Tailwind → `static/dist/` (gitignoré). Rebuild obligatoire avant tout déploiement touchant CSS/JS **ou ajoutant des classes Tailwind dans les templates** (`npm run build`) — sinon les nouveaux utilitaires manquent dans le CSS compilé et la mise en page s'effondre. Exception : `static/css/login.css` est linké directement (pas besoin de build pour le modifier).
 
 ## Commandes
-- Tests : `python -m pytest -q` (26 tests). Lint : `ruff check .` (4 erreurs pré-existantes sur le baseline — ne pas les « corriger » au passage).
+- Tests : `python -m pytest -q` (~34; un seul test : `python -m pytest -q tests/test_auth.py::test_mobile_menu_overlay`). Lint : `ruff check .` (4 erreurs pré-existantes sur le baseline — ne pas les « corriger » au passage).
 - Contexte tests (`tests/conftest.py`) : `SITE_PASSWORD="test-password"`, CSRF désactivé, fixture `client` **auto-authentifiée**, `anon_client` pour les cas non connectés.
 - BDD locale : `flask db upgrade` (migrations via Flask-Migrate). Ne jamais committer `data/database.db`.
 
@@ -15,6 +15,17 @@
 - `SITE_PASSWORD` requis : fail-fast en prod (`FLASK_ENV=production`), fallback dev avec warning. Hashé une fois par processus (PBKDF2).
 - `WTF_CSRF_SSL_STRICT = False` (config) : derrière le reverse proxy alwaysdata, exiger le `Referer` casse les appels `fetch` légitimes. Ne pas réactiver.
 - Rate limit login : 10 échecs / 10 min / IP → 429. `Cache-Control: no-store` sur HTML/JSON (tokens CSRF + contenu authentifié) ; statics intacts.
+
+## Frontend (menu mobile)
+- Menu mobile = pilule `#menu-icon` (top-right) + overlay plein écran `#mobile-ul` (`.mobile-overlay`, z-40 sous la pilule z-50). Fermeture : bouton `#menu-close`, clic fond/item, Échap, scroll bloqué (`body.overflow-hidden`). La bascule de thème (`*-mode-mobile` ferme PAS l'overlay intentionnellement). La page courante est marquée via `.current` (comparaison `pathname`).
+- `.menu` (menu laptop, dégradé radial inversé par thème, dans base.css) : le texte sur menu doit être `--primary-color` (inversé vs le body). L'overlay mobile `.mobile-overlay` n'utilise PAS `.menu` : il est aligné sur les couleurs du corps via la permutation `--body-bg`/`--body-text` (capture inversion). Les icônes d'items doivent être enregistrées dans `static/js/icons.js` (les `<i data-lucide>` cachés sont remplacés quand même).
+- Le menu (mobile + laptop) n'est rendu que si `menuItems` est non vide : la page de connexion (non authentifié) n'a pas de menu.
+- Piège cascade : le CSS custom de `base.css` (après `@import "tailwindcss"`) est **non-layered**, il écrase TOUJOURS les utilitaires Tailwind (y compris `.hidden`). Donc état du menu via classe dédiée `.open` sur l'overlay (`display:none` par défaut), jamais via `.hidden`.
+
+## Git (repo public : doit rester clonable par n'importe qui)
+- Aucune info perso dans le code versionné : ni secrets, ni `user@host`, ni chemins locaux. `.env` jamais committé (historique vérifié propre). Secrets de test factices uniquement (`"test-password"`, `change-me`).
+- `.coverage`, `data/database.db*`, WAL/journal déjà ignorés (.gitignore) — ne pas réindexer ces artefacts.
+- La config perso du backup / rsync vit dans des wrappers locaux hors git (`~/.local/bin/run_movies_pull.sh`), pas dans les scripts versionnés.
 
 ## Déploiement alwaysdata (manuel, pas de CI/Docker sur le mutualisé)
 - Transfert par rsync vers `~/www/movies/`. Commande sûre (ne jamais `--delete` sans exclure le venv — ça a déjà détruit le venv distant une fois). Adapter `[compte]` à ton compte alwaysdata :
@@ -26,8 +37,9 @@
 
 ## Backup prod
 - `scripts/pull_backup.sh` tourne **sur le PC** (cron horaire `0 * * * * ... >> /tmp/movies_backup_pull.log 2>&1`), pas sur le serveur : backup à chaud distant via `sqlite3 .backup` + `scp` vers pCloud. Nom journalier (écrasé dans la journée), rétention 10 fichiers.
+- Config 100 % par variables d'env (`SSH_USER`, `SSH_HOST`, `REMOTE_DB`, `BACKUP_DIR` — requises, erreurs explicites sinon) : le cron appelle le wrapper local `~/.local/bin/run_movies_pull.sh` (hors git) qui les injecte. Ne jamais remettre de valeurs perso en dur dans le script versionné.
 - Clé dédiée sans passphrase : `~/.ssh/id_alwaysdata_movies`. Le script sort en code 0 avec un message INFO si la BDD distante est absente (site pas déployé).
-- `scripts/backup_db.sh` et `~/.local/bin/backup_movies.sh` sont obsolètes (logique locale).
+- `scripts/backup_db.sh` (documenté README, backup local 20h générique) n'est PAS celui utilisé sur l'infra réelle.
 
 ## Pièges `.env`
 - Valeurs avec caractères spéciaux : quoter (surtout `SITE_PASSWORD`) — sinon `source .env` en bash casse ; dans les scripts, lire via `python -c "from dotenv import dotenv_values"`, jamais via `set -a; . .env`.
