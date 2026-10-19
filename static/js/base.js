@@ -31,20 +31,37 @@ document.addEventListener("DOMContentLoaded", function () {
             if (el) el.classList.remove("hidden");
         });
     }
-    // mobile menu outside click
-    const container = document.getElementById("mobile-menu");
-    const menu = document.getElementById("mobile-ul");
-    if (container && menu) {
-        window.addEventListener("click", (e) => {
-            if (!container.contains(e.target)) {
-                menu.classList.add("hidden");
+    // menu mobile plein écran : pilule = ouvre/ferme, overlay = échappe + clic fond/item
+    // état porté par la classe .open (CSS custom), pas .hidden (écrasée par .mobile-overlay)
+    const menuBtn = document.getElementById("menu-icon");
+    const overlay = document.getElementById("mobile-ul");
+    const closeBtn = document.getElementById("menu-close");
+    const setMenu = (openKeep) => {
+        if (!overlay) return;
+        overlay.classList.toggle("open", openKeep);
+        document.body.classList.toggle("overflow-hidden", openKeep);
+        overlay.setAttribute("aria-hidden", String(!openKeep));
+        menuBtn?.setAttribute("aria-expanded", String(openKeep));
+    };
+    if (menuBtn && overlay) {
+        menuBtn.addEventListener("click", () => setMenu(!overlay.classList.contains("open")));
+        closeBtn?.addEventListener("click", () => setMenu(false));
+        overlay.addEventListener("click", (e) => {
+            const onLink = e.target.closest("a");
+            // bascule de thème : le menu reste ouvert pour voir le changement
+            if (onLink && onLink.id.endsWith("-mode-mobile")) return;
+            if (e.target === overlay || onLink) setMenu(false);
+        });
+        document.addEventListener("keydown", (e) => {
+            if (e.key === "Escape" && overlay.classList.contains("open")) setMenu(false);
+        });
+        // marque l'item de la page courante
+        overlay.querySelectorAll("a[href]").forEach((a) => {
+            const href = a.getAttribute("href");
+            if (href && !href.startsWith("http") && href === window.location.pathname) {
+                a.classList.add("current");
             }
         });
-    }
-    // delegate menu-icon toggle (replaces inline onclick)
-    const menuIcon = document.getElementById("menu-icon");
-    if (menuIcon && menu) {
-        menuIcon.addEventListener("click", () => toggleHidden(menu));
     }
     // live autocomplete handler (debounced input)
     const titleInput = document.getElementById("title");

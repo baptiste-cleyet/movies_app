@@ -94,3 +94,17 @@ def test_private_pages_not_cached(client):
     assert r.headers["Cache-Control"] == "no-store, max-age=0"
     r = client.post("/search_movie", json={"title": ""})
     assert r.headers["Cache-Control"] == "no-store, max-age=0"
+
+
+def test_mobile_menu_overlay(client):
+    html = client.get("/").get_data(as_text=True)
+    assert "menu-icon" in html and "aria-expanded" in html
+    assert "menu-close" in html
+    assert "mobile-overlay" in html and "mobile-item" in html
+
+
+def test_menu_hidden_when_logged_out(anon_client):
+    html = anon_client.get("/login").get_data(as_text=True)
+    assert "menu-icon" not in html
+    assert "laptop-menu" not in html
+    assert "mobile-overlay" not in html

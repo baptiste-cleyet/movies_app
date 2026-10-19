@@ -22,15 +22,28 @@
 
         <title>{% block title %} {% endblock %}</title>
     </head>
-    <nav class='mobile-menu fixed top-3 right-2 m-4 inline-flex items-center justify-center rounded-full text-(--primary-color) bg-(--secondary-color)/40 backdrop-blur-sm p-1 z-50' id='mobile-menu'>
-
-        <a id='menu-icon' 
-        class="flex items-center gap-2 p-0.5 px-1 font-semibold">
-            <i data-lucide="square-menu" class="w-8 h-10"></i>
+    {# Menus affichés uniquement connecté (menuItems vide sur la page de connexion) #}
+    {% if menuItems %}    {# Menu mobile (écrans tactiles) : pilule flottante + overlay plein écran #}
+    <div class='mobile-menu fixed top-4 right-4 z-50' id='mobile-menu'>
+        <a id='menu-icon' role='button' aria-controls='mobile-ul' aria-expanded='false' aria-label='Ouvrir le menu'
+           class="flex w-12 h-12 items-center justify-center rounded-full text-(--primary-color) bg-(--secondary-color)/20 backdrop-blur-md border border-(--secondary-color)/25 shadow-lg shadow-black/15 active:scale-90 transition cursor-pointer">
+            <i data-lucide="square-menu" class="w-6 h-6"></i>
         </a>
-        
-        <ul class="menu hidden rounded-2xl" id='mobile-ul'>
-        
+    </div>
+
+    <div id='mobile-ul' class='mobile-overlay' aria-hidden='true'>
+        <div class="flex items-center justify-between px-1 pb-5">
+            <span class="flex items-center gap-2.5 font-extrabold text-lg tracking-tight text-(--primary-color)">
+                <img src="{{ url_for('static', filename='images/icon.png') }}" alt="" class="w-9 h-9 rounded-xl shadow-md">
+                Ma cinémathèque
+            </span>
+            <a id='menu-close' role='button' aria-label='Fermer le menu'
+               class="flex w-10 h-10 items-center justify-center rounded-full text-(--primary-color) bg-(--primary-color)/10 active:scale-90 transition cursor-pointer">
+                <i data-lucide="x" class="w-5 h-5"></i>
+            </a>
+        </div>
+
+        <ul class="flex flex-col gap-2.5 overflow-y-auto">
             {% for item in menuItems %}
                 <li class="menu-button" id='{{ item.id }}-mobile-li'>
                     <a
@@ -38,20 +51,27 @@
                         {% if item.href %}
                             href="{{ item.href }}"
                         {% endif %}
-                        class="flex items-center px-6 py-4 text-(--primary-color) font-medium cursor-pointer"
+                        class="mobile-item flex w-full items-center gap-4 px-5 py-4 rounded-2xl font-semibold text-(--primary-color)"
                     >
-                        <i data-lucide="{{ item.iconName }}" class="mr-2 w-5 h-5"></i>
+                        <span
+                            class="flex w-10 h-10 shrink-0 items-center justify-center rounded-xl bg-(--primary-color)/12 {% if item.id in ('logout-button', 'delete-movie-button') %}mobile-danger{% endif %}"
+                        >
+                            <i data-lucide="{{ item.iconName }}" class="w-5 h-5"></i>
+                        </span>
                         {{ item.name }}
+                        <i data-lucide="chevron-right" class="w-4 h-4 ml-auto shrink-0 opacity-40"></i>
                     </a>
                 </li>
             {% endfor %}
-        
         </ul>
-    
-    </nav>
+
+        <p class="pt-5 text-center text-xs opacity-50 text-(--primary-color)">Séances, notes &amp; souvenirs</p>
+    </div>
+    {% endif %}
 
     <body>
 
+        {% if menuItems %}
         <!-- Laptop menu -->
         <div 
             id = "laptop-menu"
@@ -91,6 +111,7 @@
                 </nav> 
             </div>
         </div>
+        {% endif %}
 
         {% block content %} {% endblock %}
 

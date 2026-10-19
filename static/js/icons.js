@@ -21,6 +21,8 @@ import LogOut from "./vendor/lucide/icons/log-out.js";
 import LogIn from "./vendor/lucide/icons/log-in.js";
 import Lock from "./vendor/lucide/icons/lock.js";
 import EyeOff from "./vendor/lucide/icons/eye-off.js";
+import X from "./vendor/lucide/icons/x.js";
+import ChevronRight from "./vendor/lucide/icons/chevron-right.js";
 import replaceElement from "./vendor/lucide/replaceElement.js";
 
 export const icons = {
@@ -47,6 +49,8 @@ export const icons = {
     LogIn,
     Lock,
     EyeOff,
+    X,
+    ChevronRight,
 };
 
 export const createIcons = ({ icons: iconSet = icons, nameAttr = "data-lucide", attrs = {} } = {}) => {

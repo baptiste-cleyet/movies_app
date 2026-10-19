@@ -13,7 +13,11 @@
 	--primary-color: var(--ivory-cream);
     --secondary-color: var(--deep-teal);
     --banner-opacity: 60%;
-    
+
+    /* Couleurs « corps » capturées (le menu mobile les permutera) */
+    --body-bg: var(--primary-color);
+    --body-text: var(--secondary-color);
+
     .menu {
         background: radial-gradient(circle, hsla(191, 41%, 33%, 1) 0%, hsla(191, 94%, 13%, 1) 100%);
     }
@@ -24,7 +28,11 @@
     --primary-color: var(--deep-teal);
     --secondary-color:var(--ivory-cream);
     --banner-opacity: 40%;
-    
+
+    /* Couleurs « corps » capturées (le menu mobile les permutera) */
+    --body-bg: var(--primary-color);
+    --body-text: var(--secondary-color);
+
     .menu {
         background: radial-gradient(circle, hsla(55, 55%, 87%, 1) 0%, hsla(46, 27%, 69%, 1) 100%);
     }
@@ -33,6 +41,61 @@
 body {
     background-color: var(--primary-color);
     color: var(--secondary-color);
+    -webkit-tap-highlight-color: transparent;
+}
+
+/* ------------------------------------------ Mobile menu: floating pill + fullscreen overlay ------------------------------------------ */
+
+/* Plein écran, au-dessus du contenu mais sous la pilule.
+   Etat par défaut fermé (display:none) ; .open l'affiche.
+   Règles non-layered (plus fortes que les utilitaires Tailwind) : ne PAS
+   utiliser la classe .hidden ici, elle serait écrasée par display:flex.
+   Couleurs alignées sur la page : le menu mobile occupe tout l'écran, il
+   prend donc les couleurs du corps (texte = --secondary-color). La
+   permutation se fait via --body-bg/--body-text (capturées dans le thème)
+   pour éviter tout cycle de variables. */
+.mobile-overlay {
+    --primary-color: var(--body-text);
+    --secondary-color: var(--body-bg);
+    position: fixed;
+    inset: 0;
+    z-index: 40;
+    display: none;
+    flex-direction: column;
+    padding: max(1.25rem, env(safe-area-inset-top)) max(1.25rem, env(safe-area-inset-right))
+        max(1.25rem, env(safe-area-inset-bottom)) max(1.25rem, env(safe-area-inset-left));
+    overscroll-behavior: contain;
+    background: radial-gradient(circle at 18% 12%,
+        color-mix(in srgb, var(--body-text) 6%, var(--body-bg)) 0%,
+        var(--body-bg) 62%);
+}
+
+.mobile-overlay.open {
+    display: flex;
+}
+
+/* Entrée de l'overlay */
+@keyframes menu-overlay-in {
+    from {
+        opacity: 0;
+        transform: scale(1.04);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+/* Entrée décalée des items */
+@keyframes menu-item-in {
+    from {
+        opacity: 0;
+        transform: translateY(14px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 
@@ -90,5 +153,48 @@ body {
 @media screen and (hover: none){
     .laptop-menu-container{
         display: none !important;
+    }
+
+    .mobile-overlay {
+        animation: menu-overlay-in 0.28s ease both;
+    }
+
+    .mobile-overlay ul > li {
+        animation: menu-item-in 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;
+    }
+
+    .mobile-overlay ul > li:nth-child(1) { animation-delay: 0.03s; }
+    .mobile-overlay ul > li:nth-child(2) { animation-delay: 0.07s; }
+    .mobile-overlay ul > li:nth-child(3) { animation-delay: 0.11s; }
+    .mobile-overlay ul > li:nth-child(4) { animation-delay: 0.15s; }
+    .mobile-overlay ul > li:nth-child(5) { animation-delay: 0.19s; }
+    .mobile-overlay ul > li:nth-child(6) { animation-delay: 0.23s; }
+    .mobile-overlay ul > li:nth-child(7) { animation-delay: 0.27s; }
+    .mobile-overlay ul > li:nth-child(8) { animation-delay: 0.31s; }
+    .mobile-overlay ul > li:nth-child(9) { animation-delay: 0.35s; }
+    .mobile-overlay ul > li:nth-child(10) { animation-delay: 0.39s; }
+
+    /* Ligne de la page courante */
+    .mobile-item.current {
+        background: color-mix(in srgb, var(--primary-color) 16%, transparent);
+        box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--primary-color) 40%, transparent);
+    }
+
+    /* Pastille retirée pour les actions destructrices (suppression, déconnexion) */
+    .mobile-danger {
+        background: color-mix(in srgb, #dc2626 20%, transparent) !important;
+        color: #f87171;
+    }
+
+    /* Appui tactile */
+    .mobile-item:active {
+        transform: scale(0.98);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .mobile-overlay,
+    .mobile-overlay ul > li {
+        animation: none;
     }
 }
