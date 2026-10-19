@@ -297,29 +297,57 @@ export function addSearchPosters(title, posterContainer, signal) {
             data.results.forEach((movie) => {
                 const year = (movie.release_date || "").split("-")[0] || "";
                 const card = document.createElement("div");
-                card.className = "search-card cursor-pointer border-2 border-transparent rounded-lg text-center hover:border-(--secondary-color) transition flex-shrink-0 relative overflow-hidden";
-                card.style.width = isGrid ? "100%" : "140px";
+                card.className = "search-card cursor-pointer border-2 border-transparent rounded-lg hover:border-(--secondary-color) transition relative overflow-hidden";
+                if (isGrid) {
+                    // Grille : cartes portrait pleine largeur, titre en tooltip (desktop)
+                    card.classList.add("text-center", "flex-shrink-0");
+                    card.style.width = "100%";
+                } else {
+                    // Watchlist : carte paysage (titre visible) sur mobile, portrait + tooltip sur desktop
+                    card.classList.add("flex", "items-center", "gap-3", "w-full", "p-2", "text-left", "flex-shrink-0", "sm:block", "sm:w-auto", "sm:p-0", "sm:text-center");
+                }
                 card.setAttribute("role", "option");
                 card.dataset.id = movie.id;
                 const imgSrc = movie.poster_path ? "https://image.tmdb.org/t/p/w500" + movie.poster_path : "";
-                const imgHeight = isGrid ? "140px" : "140px";
                 if (imgSrc) {
                     const img = document.createElement("img");
                     img.src = imgSrc;
                     img.alt = movie.title;
-                    img.style.width = "100%";
-                    img.style.height = imgHeight;
-                    img.style.objectFit = "cover";
-                    img.className = "rounded";
                     img.loading = "lazy";
+                    if (isGrid) {
+                        img.style.width = "100%";
+                        img.style.height = "140px";
+                        img.style.objectFit = "cover";
+                        img.className = "rounded";
+                    } else {
+                        img.className = "rounded object-cover h-24 w-16 sm:h-[140px] sm:w-[140px] shrink-0";
+                    }
                     card.appendChild(img);
                 } else {
                     const placeholder = document.createElement("div");
-                    placeholder.style.width = "100%";
-                    placeholder.style.height = imgHeight;
-                    placeholder.className = "bg-gray-300 rounded flex items-center justify-center text-xs";
                     placeholder.textContent = "Pas d'affiche";
+                    if (isGrid) {
+                        placeholder.style.width = "100%";
+                        placeholder.style.height = "140px";
+                        placeholder.className = "bg-gray-300 rounded flex items-center justify-center text-xs";
+                    } else {
+                        placeholder.className = "bg-gray-300 rounded flex items-center justify-center text-xs h-24 w-16 sm:h-[140px] sm:w-[140px] shrink-0";
+                    }
                     card.appendChild(placeholder);
+                }
+                if (!isGrid) {
+                    // Titre + année : visibles sur mobile (pas de tooltip au toucher)
+                    const info = document.createElement("div");
+                    info.className = "flex-1 min-w-0 sm:hidden";
+                    const title = document.createElement("p");
+                    title.className = "font-semibold text-sm leading-snug line-clamp-2";
+                    title.textContent = movie.title;
+                    const yearEl = document.createElement("p");
+                    yearEl.className = "text-xs opacity-60 mt-0.5";
+                    yearEl.textContent = year;
+                    info.appendChild(title);
+                    info.appendChild(yearEl);
+                    card.appendChild(info);
                 }
                 const tooltip = ensureTooltip();
                 const showTip = (e) => {
