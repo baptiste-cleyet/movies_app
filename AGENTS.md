@@ -38,6 +38,7 @@
 ## Backup prod
 - `scripts/pull_backup.sh` tourne **sur le PC** (cron horaire `0 * * * * ... >> /tmp/movies_backup_pull.log 2>&1`), pas sur le serveur : backup à chaud distant via `sqlite3 .backup` + `scp` vers pCloud. Nom journalier (écrasé dans la journée), rétention 10 fichiers.
 - Config 100 % par variables d'env (`SSH_USER`, `SSH_HOST`, `REMOTE_DB`, `BACKUP_DIR` — requises, erreurs explicites sinon) : le cron appelle le wrapper local `~/.local/bin/run_movies_pull.sh` (hors git) qui les injecte. Ne jamais remettre de valeurs perso en dur dans le script versionné.
+- `MOUNT_CHECK` (optionnel, défini dans le wrapper) : si le dossier cloud (pCloud) n'est pas monté, le script sort en code 0 avec un message INFO au lieu d'écrire dans un dossier local fantôme.
 - Clé dédiée sans passphrase : `~/.ssh/id_alwaysdata_movies`. Le script sort en code 0 avec un message INFO si la BDD distante est absente (site pas déployé).
 - `scripts/backup_db.sh` (documenté README, backup local 20h générique) n'est PAS celui utilisé sur l'infra réelle.
 

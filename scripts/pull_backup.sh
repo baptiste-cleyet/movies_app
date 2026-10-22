@@ -10,6 +10,7 @@
 #   export SSH_USER="monuser" SSH_HOST="ssh-moncompte.alwaysdata.net"
 #   export REMOTE_DB="/home/moncompte/www/movies/data/database.db"
 #   export BACKUP_DIR="$HOME/Cloud/Backups/movies"
+#   export MOUNT_CHECK="$HOME/pCloudDrive"   # optionnel : refus d'écrire si non monté
 set -euo pipefail
 
 : "${SSH_USER:?Définis SSH_USER (utilisateur SSH distant)}"
@@ -18,6 +19,24 @@ set -euo pipefail
 : "${BACKUP_DIR:?Définis BACKUP_DIR (dossier local de sauvegarde)}"
 SSH_KEY="${SSH_KEY:-$HOME/.ssh/id_alwaysdata_movies}"
 KEEP="${KEEP:-10}"
+
+# Un point de montage a un périphérique différent de son parent (repli sans
+# mountpoint : comparaison des numéros de périphérique via stat).
+is_mountpoint() {
+    if command -v mountpoint >/dev/null 2>&1; then
+        mountpoint -q "$1"
+    else
+        [ "$(stat -c %d "$1" 2>/dev/null)" != "$(stat -c %d "$(dirname "$1")" 2>/dev/null)" ]
+    fi
+}
+
+# 0a. Pré-contrôle optionnel : dossier cloud (ex. pCloud) monté avant d'écrire.
+# Sinon sortie propre (code 0) : la sauvegarde attendra le prochain passage du
+# cron au lieu de créer un dossier local fantôme ou de spammer le log d'erreurs.
+if [ -n "${MOUNT_CHECK:-}" ] && ! is_mountpoint "$MOUNT_CHECK"; then
+    echo "[$(date '+%F %T')] INFO : ${MOUNT_CHECK} non monté — sauvegarde ignorée, nouvelle tentative au prochain cron."
+    exit 0
+fi
 
 DATE="$(date +%F)"
 BACKUP_NAME="backup_${DATE}.db"
