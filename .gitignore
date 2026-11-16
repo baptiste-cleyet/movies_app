@@ -15,3 +15,5 @@ static/js/vendor/
 .coverage
 .directory
 vendor/
+# Local database backups (pulled from alwaysdata, carried to pCloud by Kopia)
+backups/

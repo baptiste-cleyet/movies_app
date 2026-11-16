@@ -25,21 +25,20 @@
 ## Git (repo public : doit rester clonable par n'importe qui)
 - Aucune info perso dans le code versionné : ni secrets, ni `user@host`, ni chemins locaux. `.env` jamais committé (historique vérifié propre). Secrets de test factices uniquement (`"test-password"`, `change-me`).
 - `.coverage`, `data/database.db*`, WAL/journal déjà ignorés (.gitignore) — ne pas réindexer ces artefacts.
-- La config perso du backup / rsync vit dans des wrappers locaux hors git (`~/.local/bin/run_movies_pull.sh`), pas dans les scripts versionnés.
+- La config perso du backup vit dans `.env` (clés `BACKUP_*`, gitignoré), jamais dans le code versionné.
 
 ## Déploiement alwaysdata (manuel, pas de CI/Docker sur le mutualisé)
 - Transfert par rsync vers `~/www/movies/`. Commande sûre (ne jamais `--delete` sans exclure le venv — ça a déjà détruit le venv distant une fois). Adapter `[compte]` à ton compte alwaysdata :
-  `rsync -az -e "ssh -i ~/.ssh/id_alwaysdata_movies -o BatchMode=yes" --exclude='venv/' --exclude='.venv/' --exclude='node_modules/' --exclude='__pycache__/' --exclude='*.pyc' --exclude='.git/' --exclude='.env' --exclude='.pytest_cache/' --exclude='.coverage' --exclude='data/database.db*' --exclude='.directory' ./ [user]@ssh-[compte].alwaysdata.net:/home/[compte]/www/movies/`
+  `rsync -az -e "ssh -i ~/.ssh/id_alwaysdata_movies -o BatchMode=yes" --exclude='venv/' --exclude='.venv/' --exclude='node_modules/' --exclude='__pycache__/' --exclude='*.pyc' --exclude='.git/' --exclude='.env' --exclude='.pytest_cache/' --exclude='.coverage' --exclude='data/database.db*' --exclude='.directory' --exclude='backups/' ./ [user]@ssh-[compte].alwaysdata.net:/home/[compte]/www/movies/`
 - Ne jamais transférer `.env` (sauf procédure explicite) ; les secrets prod vivent dans **les variables d'env du site côté admin**, prioritaires sur le `.env`.
 - venv distant : `~/www/movies/venv`, Python imposé via `PYTHON_VERSION=3.11 python -m venv` (défaut serveur : 3.14).
 - **Redémarrage manuel obligatoire** dans l'admin après chaque déploiement (uWSGI ne recharge pas seul). Debug : `~/admin/logs/uwsgi/[id].log`.
 - Ne pas se fier à `curl`/`requests` sans précaution : les 302 suivies automatiquement masquent le garde d'auth ; tester avec `allow_redirects=False` et un param d'URL unique (évite tout cache).
 
 ## Backup prod
-- `scripts/pull_backup.sh` tourne **sur le PC** (cron horaire `0 * * * * ... >> /tmp/movies_backup_pull.log 2>&1`), pas sur le serveur : backup à chaud distant via `sqlite3 .backup` + `scp` vers pCloud. Nom journalier (écrasé dans la journée), rétention 10 fichiers.
-- Config 100 % par variables d'env (`SSH_USER`, `SSH_HOST`, `REMOTE_DB`, `BACKUP_DIR` — requises, erreurs explicites sinon) : le cron appelle le wrapper local `~/.local/bin/run_movies_pull.sh` (hors git) qui les injecte. Ne jamais remettre de valeurs perso en dur dans le script versionné.
-- `MOUNT_CHECK` (optionnel, défini dans le wrapper) : si le dossier cloud (pCloud) n'est pas monté, le script sort en code 0 avec un message INFO au lieu d'écrire dans un dossier local fantôme.
-- Clé dédiée sans passphrase : `~/.ssh/id_alwaysdata_movies`. Le script sort en code 0 avec un message INFO si la BDD distante est absente (site pas déployé).
+- Le backup est tiré **par le PC** (cron horaire), pas par le serveur, avec un script partagé entre projets **hors de ce repo** : backup à chaud distant via `sqlite3 .backup` + `scp`, `PRAGMA integrity_check`, nom journalier (écrasé dans la journée), une copie identique à la précédente la remplace, rétention 10 fichiers.
+- Destination : `backups/` à la racine du projet (gitignoré). Journal : `backups/backup.log`.
+- Config lue dans `.env` (parsée, jamais sourcée) : `BACKUP_SSH_HOST` (alias `~/.ssh/config`, clé dédiée sans passphrase), `BACKUP_REMOTE_DB` ; optionnels `BACKUP_DIR`, `BACKUP_KEEP`. Voir `.env.example`.
 - `scripts/backup_db.sh` (documenté README, backup local 20h générique) n'est PAS celui utilisé sur l'infra réelle.
 
 ## Pièges `.env`
