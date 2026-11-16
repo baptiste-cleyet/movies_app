@@ -32,6 +32,7 @@
 - Toujours via `./deploy-alwaysdata.sh` (`--dry-run` d'abord ; `--migrate` si le schéma change). Il build le frontend, envoie **uniquement** une liste blanche de fichiers runtime (`app/ config.py wsgi.py migrations/ templates/ static/ requirements.txt`, `--delete` seulement à l'intérieur de ces dossiers), puis `pip install -r requirements.txt` + `pip check`. Hôte et dossier lus dans `.env` (`DEPLOY_SSH_HOST`, `DEPLOY_REMOTE_DIR`, voir `.env.example`).
 - Ne jamais revenir à un rsync de `./` entier : les fichiers de dev (tests, Docker, docs, `.env`) se retrouvaient en prod, et un `--delete` global a déjà détruit le venv distant.
 - Aucun `.env` sur le serveur : les secrets prod vivent dans **les variables d'env du site côté admin** (`FLASK_ENV`, `FLASK_SECRET_KEY`, `TMDB_API_KEY`, `TMDB_LANGUAGE`, `SITE_PASSWORD`).
+- Origine des valeurs (pour recréer le site) : `TMDB_API_KEY` sur le compte TMDB (themoviedb.org > Paramètres > API) ; `SITE_PASSWORD` dans le gestionnaire de mots de passe ; `FLASK_SECRET_KEY` régénérable (`python -c "import secrets; print(secrets.token_hex(32))"`, seules les sessions sont invalidées) ; `FLASK_ENV=production`, `TMDB_LANGUAGE=fr-FR`.
 - Dépendances : `requirements.txt` = prod uniquement (gunicorn inclus pour Docker) ; `requirements-dev.txt` = prod + pytest, pytest-cov, ruff (dev local). Ne pas remettre d'outils de dev dans `requirements.txt` : ils seraient installés dans le venv de prod.
 - venv distant : `~/www/movies/venv`, Python 3.11 imposé (`python3.11 -m venv venv`) ; défaut du compte : 3.13.
 - **Redémarrage manuel obligatoire** dans l'admin après chaque déploiement (uWSGI ne recharge pas seul). Debug : `~/admin/logs/uwsgi/[id].log`.
@@ -41,6 +42,7 @@
 - Le backup est tiré **par le PC** (cron horaire), pas par le serveur, avec un script partagé entre projets **hors de ce repo** : backup à chaud distant via `sqlite3 .backup` + `scp`, `PRAGMA integrity_check`, nom journalier (écrasé dans la journée), une copie identique à la précédente la remplace, rétention 10 fichiers.
 - Destination : `backups/` à la racine du projet (gitignoré). Journal : `backups/backup.log`.
 - Config lue dans `.env` (parsée, jamais sourcée) : `BACKUP_SSH_HOST` (alias `~/.ssh/config`, clé dédiée sans passphrase), `BACKUP_REMOTE_DB` ; optionnels `BACKUP_DIR`, `BACKUP_KEEP`. Voir `.env.example`.
+- Restauration : script partagé hors de ce repo (`--dry-run` d'abord ; sauvegarde la prod en `backups/pre-restore_*.db` avant ; charge via `sqlite3 <db> ".restore <fichier>"`, sans arrêter le site), puis redémarrer le site. Ne jamais copier un `.db` par-dessus la base vivante (WAL).
 - `scripts/backup_db.sh` (documenté README, backup local 20h générique) n'est PAS celui utilisé sur l'infra réelle.
 
 ## Pièges `.env`
