@@ -26,7 +26,7 @@ git clone <repo-url>
 cd movies
 python -m venv .venv
 source .venv/bin/activate  # Windows: .venv\Scripts\activate
-pip install -r requirements.txt
+pip install -r requirements-dev.txt  # runtime + test/lint tools
 ```
 
 Visit the [Flask installation docs](https://flask.palletsprojects.com/en/stable/installation/) for details.
@@ -72,13 +72,12 @@ Downgrade if needed: `flask db downgrade -1`
 
 ### Python
 
-All Python deps are pinned in `requirements.txt`:
+Python deps are pinned in two files:
 
 ```bash
-pip install -r requirements.txt
+pip install -r requirements.txt      # production: Flask, Flask-WTF, Flask-SQLAlchemy, Flask-Migrate, alembic, Requests, python-dotenv, gunicorn (Docker)
+pip install -r requirements-dev.txt  # development: the above + pytest, pytest-cov, ruff
 ```
-
-Includes `Flask`, `Flask-WTF`, `Flask-SQLAlchemy`, `Flask-Migrate`, `Requests`, `gunicorn`, `python-dotenv`, `pytest`, `pytest-cov`, `ruff`.
 
 [More information](https://pypi.org/project/python-dotenv/) for dotenv.
 [More information](https://pypi.org/project/requests/) for requests.

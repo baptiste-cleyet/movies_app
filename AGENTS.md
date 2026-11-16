@@ -6,6 +6,7 @@
 - Frontend Vite+Tailwind → `static/dist/` (gitignoré). Rebuild obligatoire avant tout déploiement touchant CSS/JS **ou ajoutant des classes Tailwind dans les templates** (`npm run build`) — sinon les nouveaux utilitaires manquent dans le CSS compilé et la mise en page s'effondre. Exception : `static/css/login.css` est linké directement (pas besoin de build pour le modifier).
 
 ## Commandes
+- Installer les outils de dev : `pip install -r requirements-dev.txt`.
 - Tests : `python -m pytest -q` (~34; un seul test : `python -m pytest -q tests/test_auth.py::test_mobile_menu_overlay`). Lint : `ruff check .` (4 erreurs pré-existantes sur le baseline — ne pas les « corriger » au passage).
 - Contexte tests (`tests/conftest.py`) : `SITE_PASSWORD="test-password"`, CSRF désactivé, fixture `client` **auto-authentifiée**, `anon_client` pour les cas non connectés.
 - BDD locale : `flask db upgrade` (migrations via Flask-Migrate). Ne jamais committer `data/database.db`.
@@ -28,10 +29,11 @@
 - La config perso du backup vit dans `.env` (clés `BACKUP_*`, gitignoré), jamais dans le code versionné.
 
 ## Déploiement alwaysdata (manuel, pas de CI/Docker sur le mutualisé)
-- Transfert par rsync vers `~/www/movies/`. Commande sûre (ne jamais `--delete` sans exclure le venv — ça a déjà détruit le venv distant une fois). Adapter `[compte]` à ton compte alwaysdata :
-  `rsync -az -e "ssh -i ~/.ssh/id_alwaysdata_movies -o BatchMode=yes" --exclude='venv/' --exclude='.venv/' --exclude='node_modules/' --exclude='__pycache__/' --exclude='*.pyc' --exclude='.git/' --exclude='.env' --exclude='.pytest_cache/' --exclude='.coverage' --exclude='data/database.db*' --exclude='.directory' --exclude='backups/' ./ [user]@ssh-[compte].alwaysdata.net:/home/[compte]/www/movies/`
-- Ne jamais transférer `.env` (sauf procédure explicite) ; les secrets prod vivent dans **les variables d'env du site côté admin**, prioritaires sur le `.env`.
-- venv distant : `~/www/movies/venv`, Python imposé via `PYTHON_VERSION=3.11 python -m venv` (défaut serveur : 3.14).
+- Toujours via `./deploy-alwaysdata.sh` (`--dry-run` d'abord ; `--migrate` si le schéma change). Il build le frontend, envoie **uniquement** une liste blanche de fichiers runtime (`app/ config.py wsgi.py migrations/ templates/ static/ requirements.txt`, `--delete` seulement à l'intérieur de ces dossiers), puis `pip install -r requirements.txt` + `pip check`. Hôte et dossier lus dans `.env` (`DEPLOY_SSH_HOST`, `DEPLOY_REMOTE_DIR`, voir `.env.example`).
+- Ne jamais revenir à un rsync de `./` entier : les fichiers de dev (tests, Docker, docs, `.env`) se retrouvaient en prod, et un `--delete` global a déjà détruit le venv distant.
+- Aucun `.env` sur le serveur : les secrets prod vivent dans **les variables d'env du site côté admin** (`FLASK_ENV`, `FLASK_SECRET_KEY`, `TMDB_API_KEY`, `TMDB_LANGUAGE`, `SITE_PASSWORD`).
+- Dépendances : `requirements.txt` = prod uniquement (gunicorn inclus pour Docker) ; `requirements-dev.txt` = prod + pytest, pytest-cov, ruff (dev local). Ne pas remettre d'outils de dev dans `requirements.txt` : ils seraient installés dans le venv de prod.
+- venv distant : `~/www/movies/venv`, Python 3.11 imposé (`python3.11 -m venv venv`) ; défaut du compte : 3.13.
 - **Redémarrage manuel obligatoire** dans l'admin après chaque déploiement (uWSGI ne recharge pas seul). Debug : `~/admin/logs/uwsgi/[id].log`.
 - Ne pas se fier à `curl`/`requests` sans précaution : les 302 suivies automatiquement masquent le garde d'auth ; tester avec `allow_redirects=False` et un param d'URL unique (évite tout cache).
 
