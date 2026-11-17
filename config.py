@@ -19,3 +19,5 @@ WTF_CSRF_ENABLED = True
 # clients légitimes (fetch sans Referer). Les tokens CSRF restent vérifiés.
 WTF_CSRF_SSL_STRICT = False
 TMDB_LANGUAGE = os.getenv("TMDB_LANGUAGE", "fr-FR")
+# Authentication journal (app/auth_log.py): JSON lines, "off" disables it.
+AUTH_LOG_PATH = os.getenv("AUTH_LOG_PATH") or os.path.join(BASE_DIR, "data", "auth.log")

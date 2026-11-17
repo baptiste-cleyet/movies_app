@@ -12,6 +12,9 @@ import warnings
 from flask import current_app, jsonify, redirect, request, session, url_for
 from werkzeug.security import check_password_hash, generate_password_hash
 
+from app.auth_log import client_ip as _client_ip
+from app.auth_log import init_auth_log, log_auth_event
+
 SESSION_KEY = "authed"
 MAX_ATTEMPTS = 10
 WINDOW_SECONDS = 600
@@ -36,18 +39,11 @@ def init_auth(app):
             password = "dev-only-change-me"
     app.config["PASSWORD_HASH"] = generate_password_hash(password)
     app.config.setdefault("_login_attempts", {})
+    init_auth_log(app)
 
 
 def is_authenticated():
     return session.get(SESSION_KEY) is True
-
-
-def _client_ip():
-    # Derrière le reverse proxy alwaysdata, l'IP réelle est transmise via X-Forwarded-For.
-    forwarded = request.headers.get("X-Forwarded-For", "")
-    if forwarded:
-        return forwarded.split(",")[0].strip()
-    return request.remote_addr or "unknown"
 
 
 def _prune_attempts(store, now):
@@ -96,6 +92,7 @@ def register_guard(app):
             return None
         if is_authenticated():
             return None
+        log_auth_event("unauthenticated")
         # Les appels API (fetch JS) reçoivent du JSON, pas une redirection HTML.
         if request.blueprint == "api":
             return jsonify({"error": "Authentification requise."}), 401

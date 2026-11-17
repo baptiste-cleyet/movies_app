@@ -13,6 +13,7 @@ def app():
         "WTF_CSRF_ENABLED": False,
         "SECRET_KEY": "test-secret",
         "SITE_PASSWORD": "test-password",
+        "AUTH_LOG_PATH": db_path + ".auth.log",
     }
     app = create_app(test_config=config)
     with app.app_context():
@@ -20,6 +21,9 @@ def app():
     yield app
     os.close(db_fd)
     os.unlink(db_path)
+    for suffix in ("", ".1", ".2", ".3"):
+        if os.path.exists(db_path + ".auth.log" + suffix):
+            os.unlink(db_path + ".auth.log" + suffix)
 
 @pytest.fixture
 def client(app):

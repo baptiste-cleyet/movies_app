@@ -15,6 +15,8 @@
 - `app/auth.py` + `app/routes/auth.py` + `templates/login.html`. Garde `before_request` : pages → redirect `/login`, blueprint `api` → 401 JSON.
 - `SITE_PASSWORD` requis : fail-fast en prod (`FLASK_ENV=production`), fallback dev avec warning. Hashé une fois par processus (PBKDF2).
 - `WTF_CSRF_SSL_STRICT = False` (config) : derrière le reverse proxy alwaysdata, exiger le `Referer` casse les appels `fetch` légitimes. Ne pas réactiver.
+- IP client = en-tête `X-Real-IP` posé par le proxy alwaysdata (repli : `remote_addr`), via `app/auth_log.client_ip`. **Jamais `X-Forwarded-For`** : une valeur envoyée par le client arrive telle quelle jusqu'à l'app (vérifié le 2026-11-16), donc falsifiable ; elle est seulement journalisée brute (`xff`).
+- Journal d'authentification (`app/auth_log.py`) : une ligne JSON par événement (`ts, site, event, ip, xff, ua, method, path`), événements `login_success`, `login_failure`, `rate_limited`, `unauthenticated` (garde `before_request`, hors `/login` et statics). Fichier `AUTH_LOG_PATH` (défaut `data/auth.log`, gitignoré, jamais déployé ; `off` = désactivé), rotation 5 Mo × 3. Une erreur d'écriture ne casse jamais la requête. Format commun avec les autres sites perso : ne pas le modifier sans les aligner.
 - Rate limit login : 10 échecs / 10 min / IP → 429. `Cache-Control: no-store` sur HTML/JSON (tokens CSRF + contenu authentifié) ; statics intacts.
 
 ## Frontend (menu mobile)

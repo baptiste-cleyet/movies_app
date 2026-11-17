@@ -3,6 +3,7 @@ __pycache__/
 *.pyc
 .venv/
 data/database.db
+data/auth.log*
 *.db-shm
 *.db-wal
 *.db-journal
